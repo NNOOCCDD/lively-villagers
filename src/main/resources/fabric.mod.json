@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "livelyvillagers",
+	"version": "${version}",
+	"name": "Lively Villagers",
+	"description": "Villagers with names and personalities who greet you, react to blocks you place, flee danger and love gifts.",
+	"authors": ["imzleepink"],
+	"license": "CC0-1.0",
+	"icon": "assets/livelyvillagers/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.livelyvillagers.LivelyVillagers"],
+		"client": ["com.livelyvillagers.client.SelfTestClient"]
+	},
+	"mixins": ["livelyvillagers.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

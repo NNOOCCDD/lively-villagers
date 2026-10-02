@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "com.livelyvillagers.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"BlockItemMixin",
+		"VillagerHostilesSensorMixin",
+		"VillagerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
