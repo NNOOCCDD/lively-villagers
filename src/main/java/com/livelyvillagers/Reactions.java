@@ -391,7 +391,43 @@ public final class Reactions {
 
 	// ---------------------------------------------------------------- talking
 
+	/**
+	 * Plain right-click. Vanilla still runs afterwards: workers open trades, the jobless shake their heads
+	 * (and already play the "no" sound, so no extra sound for them).
+	 */
+	public static void onClicked(Villager v, Player player) {
+		if (!clickCooldownOver(v)) {
+			return;
+		}
+		lookAt(v, player);
+		Map<String, String> vars = Map.of("player", player.getScoreboardName());
+		VillagerProfession job = v.getVillagerData().getProfession();
+		if (v.isBaby()) {
+			say(v, Topic.CLICK_BABY, null, vars);
+		} else if (job == VillagerProfession.NONE || job == VillagerProfession.NITWIT) {
+			say(v, Topic.CLICK_JOBLESS, null, vars);
+		} else if (v.getPlayerReputation(player) <= -10) {
+			say(v, Topic.GREET_COLD, SoundEvents.VILLAGER_NO, vars);
+		} else {
+			say(v, Topic.CLICK_WORKER, SoundEvents.VILLAGER_TRADE, vars);
+		}
+	}
+
+	/** The server can get two interact packets per click; only answer the first. */
+	private static boolean clickCooldownOver(Villager v) {
+		VillagerState state = LivelyVillagers.state(v);
+		long now = v.level().getGameTime();
+		if (now < state.nextClickLine) {
+			return false;
+		}
+		state.nextClickLine = now + 10;
+		return true;
+	}
+
 	public static void introduce(Villager v, Player player) {
+		if (!clickCooldownOver(v)) {
+			return;
+		}
 		lookAt(v, player);
 		Map<String, String> vars = new HashMap<>();
 		vars.put("player", player.getScoreboardName());
@@ -408,7 +444,9 @@ public final class Reactions {
 			line = line.replace("{" + e.getKey() + "}", e.getValue());
 		}
 		float pitch = mind.personality().pitch * (v.isBaby() ? 1.4F : 1.0F) + (v.getRandom().nextFloat() - 0.5F) * 0.1F;
-		v.playSound(sound, 1.0F, pitch);
+		if (sound != null) {
+			v.playSound(sound, 1.0F, pitch);
+		}
 		if (LivelyConfig.get().speechBubbles) {
 			SpeechBubbles.show(v, line);
 		}

@@ -12,7 +12,8 @@ public final class Lines {
 		LOVE_JOB_SITE, WANT_JOB_SITE, LIKE_BLOCK, DISLIKE_BLOCK, SCARY_BLOCK, TOO_CLOSE, CURIOUS_BLOCK,
 		BROKE_JOB_SITE, BROKE_BED, BROKE_BELL, BROKE_LIKED,
 		GIFT_LIKE, GIFT_LOVE, GIFT_AGAIN, FOUND_GIFT,
-		PANIC_HOSTILE, PANIC_HURT, PANIC_TNT, PANIC_LOOP, CALM
+		PANIC_HOSTILE, PANIC_HURT, PANIC_TNT, PANIC_LOOP, CALM,
+		CLICK_JOBLESS, CLICK_WORKER, CLICK_BABY
 	}
 
 	private static final Map<Topic, String[]> DEFAULT = new EnumMap<>(Topic.class);
@@ -50,6 +51,22 @@ public final class Lines {
 		put(Topic.PANIC_TNT, "TNT! Get away!", "It's gonna blow!", "Run for it!");
 		put(Topic.PANIC_LOOP, "Aaaah!", "Help!", "Hrmmm!!", "Somebody!");
 		put(Topic.CALM, "Phew... that was close.", "Is it gone?", "My heart is still racing.");
+
+		put(Topic.CLICK_JOBLESS, "Hey...", "Stop touching me!", "Do you mind?", "Personal space, please.",
+			"Hrmm! Hands off!", "I don't have anything for you.", "No job, no trades. Sorry.", "Poke me one more time...");
+		put(Topic.CLICK_WORKER, "Hello! Welcome to my shop!", "Ah, a customer! Take a look.", "Best prices in the village!",
+			"What can I get for you today?", "Emeralds only, friend.", "Fresh stock today!", "The {job} is in! How can I help?",
+			"Pleasure doing business, {player}.");
+		put(Topic.CLICK_BABY, "Hehe! That tickles!", "Tag, you're it!", "Hey! I'm playing!");
+
+		put(Personality.CHEERFUL, Topic.CLICK_JOBLESS, "Hey... I'm on a break. Forever.", "Hi! ...No, I still don't have a job.");
+		put(Personality.CHEERFUL, Topic.CLICK_WORKER, "Hello hello! Take your time!", "Ooh, a customer! My favourite!", "Hi {player}! Great deals today!");
+		put(Personality.GRUMPY, Topic.CLICK_JOBLESS, "Stop touching me!", "Go bother someone with a job.", "HRMM!");
+		put(Personality.GRUMPY, Topic.CLICK_WORKER, "Buying or browsing?", "No haggling.", "Make it quick.");
+		put(Personality.SHY, Topic.CLICK_JOBLESS, "Eep!", "P-please don't...", "...hey.");
+		put(Personality.SHY, Topic.CLICK_WORKER, "Oh! Um... w-welcome.", "...would you like to trade?");
+		put(Personality.CURIOUS, Topic.CLICK_JOBLESS, "Hey... what's that you're holding?", "Do you know where I could find a job?");
+		put(Personality.CURIOUS, Topic.CLICK_WORKER, "Welcome! Got anything interesting to sell?", "Ooh, where are you from? ...Oh, trading, right!");
 
 		put(Personality.CHEERFUL, Topic.GREET, "Hello hello, {player}!", "What a wonderful day!", "Hi {player}! Love the outfit!", "Oh, hi! Come again soon!");
 		put(Personality.CHEERFUL, Topic.LIKE_BLOCK, "Oh, how lovely!", "I adore a nice {block}!", "Yay, decorations!");

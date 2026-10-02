@@ -16,6 +16,7 @@ public class VillagerState {
 	public long panicEndedAt = -1;
 	public long nextPanicShout;
 	public long nextBlockReaction;
+	public long nextClickLine;
 	public long nextChatter;
 	/** A gift the villager shows off in its hand until clearHandAt (game time). */
 	public Item heldGift;

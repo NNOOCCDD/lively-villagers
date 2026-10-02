@@ -13,6 +13,7 @@ personality (cheerful, curious, shy or grumpy), and talks through speech bubbles
   reputation with them a little, which also makes their trades cheaper.
 - **Danger:** villagers also fear creepers, skeletons, spiders, witches and more, shout when they panic, run
   from lit TNT and hissing creepers, and calm down afterwards.
+- **Right-click:** villagers without a job (and nitwits) grumble ("Hey...", "Stop touching me!"); working villagers greet you with a shop line before trading opens.
 - **Introductions:** sneak and right-click a villager with an empty hand to have them introduce themselves.
 
 ## Install

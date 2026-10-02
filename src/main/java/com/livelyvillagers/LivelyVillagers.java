@@ -20,6 +20,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -61,14 +63,22 @@ public class LivelyVillagers implements ModInitializer {
 			}
 		});
 
-		// Sneak + empty hand on a villager: they introduce themselves instead of opening trades.
 		UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
-			if (level.isClientSide || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()
-				|| !player.getMainHandItem().isEmpty() || !(entity instanceof Villager v) || v.isSleeping() || v.isNoAi()) {
+			if (level.isClientSide || hand != InteractionHand.MAIN_HAND || player.isSpectator()
+				|| !(entity instanceof Villager v) || !v.isAlive() || v.isSleeping() || v.isNoAi() || v.isTrading()) {
 				return InteractionResult.PASS;
 			}
-			Reactions.introduce(v, player);
-			return InteractionResult.SUCCESS;
+			// Sneak + empty hand: they introduce themselves instead of opening trades.
+			if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
+				Reactions.introduce(v, player);
+				return InteractionResult.SUCCESS;
+			}
+			// Name tags and spawn eggs keep their vanilla use without chatter.
+			ItemStack held = player.getMainHandItem();
+			if (!held.is(Items.NAME_TAG) && !held.is(Items.VILLAGER_SPAWN_EGG) && !held.is(Items.LEAD)) {
+				Reactions.onClicked(v, player);
+			}
+			return InteractionResult.PASS;
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(

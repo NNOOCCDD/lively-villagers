@@ -1,6 +1,7 @@
 package com.livelyvillagers;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -190,7 +191,29 @@ public final class SelfTest {
 				}
 				screenshot.accept("8-broke-job-site");
 			}
-			case 1120 -> finish();
+			// Right-click a working villager -> business line (fired twice, like the two interact packets).
+			case 1120 -> {
+				events.clear();
+				face(level, base.offset(0, 0, -2));
+				rightClick(level);
+				rightClick(level);
+			}
+			case 1130 -> {
+				expect("right-click worker", "CLICK_WORKER");
+				check("one line per click (" + events.size() + ")", events.size() == 1);
+				screenshot.accept("9-click-worker");
+			}
+			// Same villager without a job -> "Stop touching me!".
+			case 1200 -> {
+				events.clear();
+				villager.setVillagerData(villager.getVillagerData().setProfession(VillagerProfession.NONE));
+				rightClick(level);
+			}
+			case 1210 -> {
+				expect("right-click jobless", "CLICK_JOBLESS");
+				screenshot.accept("10-click-jobless");
+			}
+			case 1260 -> finish();
 			default -> {
 			}
 		}
@@ -243,6 +266,10 @@ public final class SelfTest {
 		player.gameMode.useItemOn(player, level, player.getMainHandItem(), InteractionHand.MAIN_HAND,
 			new BlockHitResult(Vec3.atCenterOf(ground).add(0, 0.5, 0), Direction.UP, ground, false));
 		player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+	}
+
+	private static void rightClick(ServerLevel level) {
+		UseEntityCallback.EVENT.invoker().interact(player, level, InteractionHand.MAIN_HAND, villager, null);
 	}
 
 	private static void throwGift(ServerLevel level, Item item) {
