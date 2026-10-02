@@ -97,6 +97,10 @@ public final class Film {
 	 * the timed actions (seconds from the clip's t=0, after the pre-roll).
 	 */
 	private static void shot(String name, double seconds, Runnable setup, FilmState.CameraPath camera, Object... timed) {
+		String only = System.getProperty("livelyvillagers.film.only");
+		if (only != null && !only.isEmpty() && !java.util.Arrays.asList(only.split(",")).contains(name)) {
+			return;
+		}
 		then(10, () -> {
 			clearCast();
 			setup.run();
@@ -154,12 +158,12 @@ public final class Film {
 		// 03 — walk-by: stroll up the street toward the bell; villagers along it say hi as you pass.
 		shot("03-walk-by", 7.0, () -> {
 		}, t -> {
-			double k = Math.min(1, Math.max(0, t / 7.0));
+			// Constant walking pace with eased start and stop; no head-bob.
+			double k = easeInOutLinear(t / 7.0, 0.12);
 			Vec3 p = S().add(L().scale(-10 + 10.5 * k));
-			double bob = Math.sin(t * Math.PI * 2 * 1.7) * 0.035;
-			Vec3 eye = new Vec3(p.x, S().y + 1.62 + bob, p.z);
-			// Glance toward whoever is closest on the side.
-			double glance = 18 * Math.sin(t * 1.1);
+			Vec3 eye = new Vec3(p.x, S().y + 1.62, p.z);
+			// One slow look from the left side of the street to the right, instead of a back-and-forth.
+			double glance = -14 + 28 * smooth(t / 7.0);
 			Vec3 dir = L().scale(Math.cos(Math.toRadians(glance))).add(R().scale(Math.sin(Math.toRadians(glance))));
 			return pose(eye, eye.add(dir).add(0, -0.1, 0));
 		}, -0.8, (Runnable) () -> {
@@ -170,6 +174,7 @@ public final class Film {
 
 		// 04 — reactions: place a flower and a lectern; real BlockItem placement triggers them.
 		shot("04-reactions", 6.0, () -> {
+			clearResidents();
 		}, t -> {
 			double k = smooth(t / 6.0);
 			Vec3 cam = lerp(on(0, -4.0).add(0, 2.0, 0), on(0, -3.3).add(0, 1.85, 0), k);
@@ -181,6 +186,7 @@ public final class Film {
 
 		// 05 — gift: toss a poppy; the villager walks over, takes it and holds it.
 		shot("05-gift", 7.0, () -> {
+			clearResidents();
 		}, t -> {
 			double k = smooth(t / 7.0);
 			Vec3 cam = lerp(on(0.6, -3.2).add(0, 1.75, 0), on(0.2, -2.4).add(0, 1.7, 0), k);
@@ -190,6 +196,7 @@ public final class Film {
 
 		// 06 — danger: a creeper comes down the street; the villagers scatter and shout.
 		shot("06-danger", 7.0, () -> {
+			clearResidents();
 		}, t -> {
 			double k = smooth(t / 7.0);
 			Vec3 cam = lerp(on(0, -6.5).add(0, 2.6, 0), on(0, -6.0).add(0, 2.4, 0), k);
@@ -203,6 +210,7 @@ public final class Film {
 
 		// 07 — poke: right-click a nitwit.
 		shot("07-poke", 4.5, () -> {
+			clearResidents();
 		}, t -> {
 			double k = smooth(t / 4.5);
 			Vec3 cam = lerp(on(0.15, -1.9).add(0, 1.62, 0), on(0.1, -1.4).add(0, 1.62, 0), k);
@@ -223,10 +231,10 @@ public final class Film {
 			double k = smooth(t / 7.5);
 			Vec3 cam = lerp(on(-0.3, -4.4).add(0, 2.0, 0), on(0.1, -3.2).add(0, 1.85, 0), k);
 			return pose(cam, on(0, 1.2).add(0, 1.4, 0));
-		}, -0.9, (Runnable) () -> SpeechBubbles.scaleBoost = 1.6F, -0.8, (Runnable) () -> {
-			villager(on(-1.9, 0.9), VillagerProfession.FARMER, 0.0);
-			villager(on(0.0, 1.6), VillagerProfession.LIBRARIAN, 0.0);
-			villager(on(1.9, 0.8), VillagerProfession.NONE, 0.0);
+		}, -0.9, (Runnable) () -> SpeechBubbles.scaleBoost = 1.4F, -0.8, (Runnable) () -> {
+			villager(on(-2.7, 1.0), VillagerProfession.FARMER, 0.0);
+			villager(on(0.0, 2.0), VillagerProfession.LIBRARIAN, 0.0);
+			villager(on(2.7, 0.9), VillagerProfession.NONE, 0.0);
 		}, 3.4, (Runnable) () -> setSpeed(0.5));
 
 		then(20, Film::clearCast);
@@ -303,6 +311,13 @@ public final class Film {
 		return v;
 	}
 
+	/** Village residents near the stage would wander into close-ups (and steal gifts): move them on. */
+	private static void clearResidents() {
+		for (Villager v : Showcase.level.getEntitiesOfClass(Villager.class, new AABB(Showcase.stage).inflate(14), v -> !cast.contains(v))) {
+			v.discard();
+		}
+	}
+
 	/** This villager already knows the player, so it won't open with a greeting. */
 	private static Villager quiet(Villager v) {
 		VillagerState state = LivelyVillagers.state(v);
@@ -341,9 +356,11 @@ public final class Film {
 	private static void toss(Item item, Vec3 target) {
 		Vec3 eye = Showcase.player.getEyePosition();
 		Vec3 d = target.subtract(eye);
-		ItemEntity gift = new ItemEntity(Showcase.level, eye.x, eye.y - 0.3, eye.z, new ItemStack(item));
 		double flat = Math.sqrt(d.x * d.x + d.z * d.z);
-		gift.setDeltaMovement(d.x / flat * 0.32, 0.22, d.z / flat * 0.32);
+		// Start a little in front of the camera so the flower is seen flying, not filling the lens.
+		Vec3 from = eye.add(d.x / flat * 1.3, -0.45, d.z / flat * 1.3);
+		ItemEntity gift = new ItemEntity(Showcase.level, from.x, from.y, from.z, new ItemStack(item));
+		gift.setDeltaMovement(d.x / flat * 0.25, 0.2, d.z / flat * 0.25);
 		gift.setThrower(Showcase.player);
 		gift.setPickUpDelay(10);
 		Showcase.level.addFreshEntity(gift);
@@ -392,6 +409,20 @@ public final class Film {
 	}
 
 	// ------------------------------------------------------------------ camera math
+
+	/** Linear motion with short eased ramps at each end (ramp = fraction of the clip). */
+	private static double easeInOutLinear(double k, double ramp) {
+		k = Math.min(1, Math.max(0, k));
+		double v = 1 / (1 - ramp);
+		if (k < ramp) {
+			return v * k * k / (2 * ramp);
+		}
+		if (k > 1 - ramp) {
+			double r = 1 - k;
+			return 1 - v * r * r / (2 * ramp);
+		}
+		return v * (k - ramp / 2);
+	}
 
 	private static double smooth(double k) {
 		k = Math.min(1, Math.max(0, k));

@@ -47,6 +47,9 @@ public class SelfTestClient implements ClientModInitializer {
 				client.options.renderDistance().set(12);
 				client.options.fov().set(70);
 				client.options.pauseOnLostFocus = false;
+				// A covered window must not block on vsync (Wayland stops frame callbacks), or capture stalls.
+				client.options.enableVsync().set(false);
+				client.options.framerateLimit().set(260);
 				client.options.getSoundSourceOptionInstance(net.minecraft.sounds.SoundSource.MUSIC).set(0.0);
 				client.options.getSoundSourceOptionInstance(net.minecraft.sounds.SoundSource.MASTER).set(1.0);
 				FilmClient.install();

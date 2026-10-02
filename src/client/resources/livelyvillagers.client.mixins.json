@@ -3,6 +3,7 @@
 	"package": "com.livelyvillagers.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
+		"CameraMixin",
 		"GameRendererMixin"
 	],
 	"injectors": {

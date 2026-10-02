@@ -1,69 +1,95 @@
-"""Original pixel-art icon for Lively Villagers: a villager-style head with a speech bubble.
-Drawn on a 32x32 grid, then scaled with nearest-neighbour. No game textures are used."""
+"""Original pixel-art icon for Lively Villagers (v2, cleaner): a front-facing villager-style head
+with a small speech bubble. 32x32 grid, villager proportions at 2x (head 8x10 -> 16x20), two-tone
+shading only, scaled with nearest-neighbour. No game textures are used."""
 import struct, zlib
 
 N = 32
-C = {
-    '.': None,
-    'g': (46, 139, 87), 'G': (34, 110, 68), 'k': (24, 74, 46),      # background greens + border
-    's': (189, 140, 101), 'S': (160, 112, 78), 'd': (124, 84, 58),    # skin, shadow, deep shadow
-    'h': (98, 66, 44), 'H': (74, 49, 33),                            # hair/hood
-    'b': (52, 34, 22),                                                # brow / mouth
-    'w': (250, 250, 245), 'e': (60, 170, 80),                         # eye white, green iris
-    'n': (171, 120, 85), 'N': (139, 95, 66),                          # nose light / dark
-    'W': (255, 255, 255), 'o': (40, 40, 40),                          # bubble fill / outline
-    'r': (220, 50, 60), 'R': (170, 30, 40),                           # heart
-    'c': (110, 82, 60), 'C': (86, 62, 44),                            # robe
+P = {
+    'o': (26, 74, 47),      # background outline
+    'g': (52, 150, 95),     # background
+    'G': (66, 168, 110),    # background top light
+    'k': (40, 30, 22),      # dark outline (head/bubble)
+    'h': (92, 62, 40),      # hair
+    's': (206, 158, 120),   # skin
+    'S': (180, 132, 98),    # skin shade
+    'n': (186, 136, 100),   # nose
+    'N': (150, 104, 74),    # nose shade
+    'b': (64, 42, 28),      # brow
+    'w': (245, 242, 232),   # eye white
+    'e': (46, 160, 86),     # iris
+    'r': (122, 86, 58),     # robe
+    'R': (98, 68, 46),      # robe shade
+    'W': (255, 253, 247),   # bubble
+    'H': (226, 58, 68),     # heart
+    'D': (178, 36, 48),     # heart shade
 }
-grid = [['.'] * N for _ in range(N)]
+g = [[None] * N for _ in range(N)]
 
-def rect(x0, y0, x1, y1, ch):
+def put(x, y, c):
+    if 0 <= x < N and 0 <= y < N:
+        g[y][x] = c
+
+def rect(x0, y0, x1, y1, c):
     for y in range(y0, y1 + 1):
         for x in range(x0, x1 + 1):
-            if 0 <= x < N and 0 <= y < N:
-                grid[y][x] = ch
+            put(x, y, c)
 
-# Rounded-square background with a darker rim and a subtle lower shade.
-for y in range(N):
-    for x in range(N):
-        corner = min(x, N - 1 - x) + min(y, N - 1 - y)
-        if corner < 3:
-            continue
-        edge = x in (0, N - 1) or y in (0, N - 1) or corner == 3
-        grid[y][x] = 'k' if edge else ('G' if y > 20 else 'g')
+def rounded(x0, y0, x1, y1, r):
+    """Pixels inside a rounded rectangle (corner radius r, in pixels)."""
+    inside = set()
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            cx = min(max(x, x0 + r), x1 - r)
+            cy = min(max(y, y0 + r), y1 - r)
+            if (x - cx) ** 2 + (y - cy) ** 2 <= r * r + r * 0.6:
+                inside.add((x, y))
+    return inside
 
-# Robe / shoulders at the bottom.
-rect(4, 28, 25, 30, 'c'); rect(4, 30, 25, 30, 'C'); rect(13, 28, 16, 30, 'C')
-# Head (tall, villager-like proportions).
-rect(7, 9, 22, 27, 's')
-rect(7, 9, 22, 12, 'h'); rect(7, 9, 22, 9, 'H')          # hair band
-rect(7, 13, 7, 27, 'S'); rect(22, 13, 22, 27, 'S')        # side shading
-rect(8, 26, 21, 27, 'S')                                   # chin shade
-rect(9, 15, 20, 15, 'b')                                   # unibrow
-rect(9, 17, 10, 18, 'w'); rect(11, 17, 11, 18, 'e')        # left eye
-rect(18, 17, 19, 18, 'w'); rect(17, 17, 17, 18, 'e')       # right eye
-rect(13, 16, 16, 24, 'n'); rect(13, 22, 16, 25, 'N')      # long nose
-rect(16, 16, 16, 25, 'N')
-rect(11, 26, 18, 26, 'b')                                  # mouth
-rect(12, 25, 12, 25, 'd'); rect(17, 25, 17, 25, 'd')       # smile corners
+def fill_shape(shape, fill, outline):
+    for (x, y) in shape:
+        edge = any((x + dx, y + dy) not in shape for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+        put(x, y, outline if edge else fill(x, y))
 
-# Speech bubble top-right with a heart.
-rect(17, 2, 29, 9, 'W')
-for x in range(17, 30):
-    grid[1][x] = 'o'; grid[10][x] = 'o'
-for y in range(2, 10):
-    grid[y][16] = 'o'; grid[y][30] = 'o'
-for (x, y) in ((16, 1), (30, 1), (16, 10), (30, 10)):
-    grid[y][x] = '.' if grid[y][x] == 'o' else grid[y][x]
-# Tail: a 1-pixel opening in the bottom edge that narrows to a point toward the head.
-grid[10][20] = 'W'
-grid[11][19] = 'o'; grid[11][20] = 'W'; grid[11][21] = 'o'
-grid[12][19] = 'o'; grid[12][20] = 'o'
-heart = [".rr.rr.", "rrrrrrr", "rrrrrrR", ".rrrrR.", "..rRR..", "...R..."]
+# Background: rounded square, clean 1px outline, lighter upper band.
+fill_shape(rounded(0, 0, N - 1, N - 1, 5), lambda x, y: 'G' if y < 15 else 'g', 'o')
+
+# Robe (shoulders) under the head, clipped to the background's inner area.
+bg = rounded(0, 0, N - 1, N - 1, 5)
+for y in range(27, 31):
+    for x in range(3, 25):
+        if (x, y) in bg and g[y][x] != 'o':
+            put(x, y, 'R' if y == 27 or 12 <= x <= 15 else 'r')
+
+# Head 16x20 (villager 8x10 at 2x), 1px dark outline, two-tone skin.
+X0, Y0, X1, Y1 = 6, 7, 21, 26
+rect(X0 - 1, Y0 - 1, X1 + 1, Y1 + 1, 'k')
+rect(X0, Y0, X1, Y1, 's')
+rect(X1 - 1, Y0, X1, Y1, 'S')
+rect(X0, Y1 - 1, X1, Y1, 'S')
+rect(X0, Y0, X1, Y0 + 3, 'h')
+rect(X0, Y0 + 4, X0, Y0 + 5, 'h'); rect(X1, Y0 + 4, X1, Y0 + 5, 'h')
+# Brow, then eyes (white outer, green inner).
+rect(X0 + 2, Y0 + 6, X1 - 2, Y0 + 7, 'b')
+rect(X0 + 2, Y0 + 8, X0 + 3, Y0 + 9, 'w'); rect(X0 + 4, Y0 + 8, X0 + 5, Y0 + 9, 'e')
+rect(X1 - 5, Y0 + 8, X1 - 4, Y0 + 9, 'e'); rect(X1 - 3, Y0 + 8, X1 - 2, Y0 + 9, 'w')
+# Long nose, 4x8, shaded right and bottom.
+NX = X0 + 6
+rect(NX, Y0 + 9, NX + 3, Y0 + 16, 'n')
+rect(NX + 3, Y0 + 9, NX + 3, Y0 + 16, 'N')
+rect(NX, Y0 + 16, NX + 3, Y0 + 16, 'N')
+
+# Speech bubble: rounded, clean outline, short tail angled down-left toward the head.
+bubble = rounded(17, 1, 30, 10, 3)
+fill_shape(bubble, lambda x, y: 'W', 'k')
+put(22, 10, 'W'); put(23, 10, 'W')                 # opening in the bottom edge
+put(21, 10, 'k'); put(24, 10, 'k')
+put(22, 11, 'W'); put(21, 11, 'k'); put(23, 11, 'k')
+put(21, 12, 'k'); put(22, 12, 'k')
+heart = [".HH.HH.", "HHHHHHD", "HHHHHHD", ".HHHHD.", "..HHD..", "...D..."]
 for j, row in enumerate(heart):
-    for i, ch in enumerate(row):
-        if ch != '.':
-            grid[3 + j][20 + i] = ch
+    for i, c in enumerate(row):
+        if c != '.':
+            put(20 + i, 3 + j, c)
 
 def write_png(path, scale):
     size = N * scale
@@ -71,8 +97,8 @@ def write_png(path, scale):
     for y in range(size):
         raw.append(0)
         for x in range(size):
-            px = C[grid[y // scale][x // scale]]
-            raw += bytes((*px, 255)) if px else b'\x00\x00\x00\x00'
+            c = g[y // scale][x // scale]
+            raw += bytes((*P[c], 255)) if c else b'\x00\x00\x00\x00'
     def chunk(t, d):
         return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
     png = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0))

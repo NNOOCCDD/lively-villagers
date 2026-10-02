@@ -22,6 +22,10 @@ loom {
 			}
 			if (project.hasProperty("film")) {
 				vmArg "-Dlivelyvillagers.film=true"
+				if (project.hasProperty("filmOnly")) {
+					vmArg "-Dlivelyvillagers.film.only=${project.property('filmOnly')}"
+					vmArg "-Dlivelyvillagers.film.out=film-retake"
+				}
 				programArgs "--width", "1920", "--height", "1080", "--username", "Steve"
 			}
 			if (project.hasProperty("showcase")) {

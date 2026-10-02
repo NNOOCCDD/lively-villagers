@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  */
 public final class FilmClient {
 	private static final int FPS = 30;
-	private static final Path OUT = Path.of("film");
+	private static final Path OUT = Path.of(System.getProperty("livelyvillagers.film.out", "film"));
 
 	private static Process ffmpeg;
 	private static Process audio;
@@ -45,6 +45,8 @@ public final class FilmClient {
 	private static BlockingQueue<ByteBuffer> full;
 	private static Thread writer;
 	private static ByteBuffer last;
+	/** The slot whose pose the current render used, or -1 if it used "now". */
+	private static long poseSlot = -1;
 
 	static void install() {
 		try {
@@ -81,6 +83,28 @@ public final class FilmClient {
 		player.setYHeadRot(p.yaw());
 	}
 
+	/**
+	 * The camera pose for the frame about to be rendered. While recording, a frame that will be
+	 * captured gets the pose for its exact 1/30 s slot, so motion is perfectly even in the video no
+	 * matter how irregular the real frame times are; otherwise the pose for "now".
+	 */
+	public static FilmState.Pose framePose() {
+		FilmState.CameraPath path = FilmState.camera;
+		if (!FilmState.active || path == null) {
+			return null;
+		}
+		long when = System.nanoTime();
+		poseSlot = -1;
+		if (clip != null) {
+			long slot = clipStartNanos + framesWritten * 1_000_000_000L / FPS;
+			if (when >= slot) {
+				when = slot;
+				poseSlot = framesWritten;
+			}
+		}
+		return path.at(Math.max(0, (when - FilmState.cameraStartNanos) / 1e9));
+	}
+
 	// ------------------------------------------------------------------ recording
 
 	/** Called at the end of GameRenderer.render, when the main framebuffer holds the finished frame. */
@@ -98,15 +122,15 @@ public final class FilmClient {
 		if (clip == null) {
 			return;
 		}
-		long due = (System.nanoTime() - clipStartNanos) * FPS / 1_000_000_000L + 1;
-		if (framesWritten >= due) {
+		// Only frames rendered with their slot's exact pose are captured.
+		if (poseSlot != framesWritten) {
 			return;
 		}
-		ByteBuffer frame = grab();
-		while (framesWritten < due) {
-			enqueue(frame);
-			framesWritten++;
-		}
+		// This render used the pose for slot `framesWritten` (see framePose), so it fills exactly that
+		// slot. If rendering ever falls behind, the remaining slots are filled by the next renders,
+		// each with its own pose, so the motion stays even (the clip just ends a little later).
+		enqueue(grab());
+		framesWritten++;
 	}
 
 	private static ByteBuffer grab() {
@@ -203,6 +227,7 @@ public final class FilmClient {
 		if (clip == null) {
 			return;
 		}
+		double wallFramesAtStop = (System.nanoTime() - clipStartNanos) * FPS / 1e9;
 		try {
 			full.put(END);
 			writer.join();
@@ -211,6 +236,10 @@ public final class FilmClient {
 			throw new RuntimeException(e);
 		}
 		double offset = (clipStartNanos - audioStartNanos) / 1e9;
+		double wallFrames = wallFramesAtStop;
+		if (wallFrames - framesWritten > 3) {
+			LivelyVillagers.LOGGER.warn("FILM {} fell behind real time by {} frames", clip, (int) (wallFrames - framesWritten));
+		}
 		String line = String.format(java.util.Locale.ROOT, "{\"clip\":\"%s\",\"frames\":%d,\"fps\":%d,\"audio_offset\":%.3f}%n",
 			clip, framesWritten, FPS, offset);
 		try {
