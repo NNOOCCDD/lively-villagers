@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 (Minecraft 1.21.1, Fabric + NeoForge)
+
+### New: NeoForge support
+- Lively Villagers now runs on **NeoForge 1.21.1** as well as Fabric, with identical features. Download the jar for your loader.
+- Like the Fabric version, it only needs to be on the server; clients can join without it.
+
+### Changes
+- Villager names, personalities and gift records are now saved in a loader-neutral format inside the villager's own data. Villagers from 1.0.x Fabric worlds keep their names and personalities: they're converted automatically the first time they load.
+- The spoken raid warning now always goes to a villager a player can actually hear (the alarm that sends neighbours to hide still works anywhere).
+
 ## 1.0.1 (Minecraft 1.21.1, Fabric)
 
 ### New: raids

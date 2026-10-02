@@ -3,18 +3,23 @@
 How the mod is built and tested, and what was learned about vanilla villagers along the way.
 
 ## Code layout
+MultiLoader layout: `common/` is compiled against vanilla Minecraft (NeoForm, Mojang names) and its sources are
+compiled into both loader jars; `fabric/` (Loom) and `neoforge/` (ModDevGradle) only hold an entry point that
+forwards their loader's events to `LivelyVillagers.on...`. Shared Gradle logic is in `buildSrc/`.
+
+- `LivelyVillagers`: init, event handlers, `/lively` commands.
 - `VillagerBrain`: runs every behaviour for a villager, from the end of its vanilla AI step (`VillagerMixin`).
 - `Greetings`, `BlockReactions`, `Gifts`, `Danger`, `RaidReactions`: one behaviour each.
 - `Speech` + `SpeechBubbles`: picking/filling a line from `Lines`, the sound, and the vanilla `text_display` bubble.
-- `VillagerMind` (saved: name, personality, gift days) and `VillagerState` (not saved: cooldowns and flags), both Fabric data attachments.
+- `VillagerMind` (saved: name, personality, gift days) and `VillagerState` (not saved: cooldowns and flags), stored on the villager by `VillagerMixin` (the `LivelyVillager` interface) and saved under the `LivelyVillagers` NBT key. 1.0.x Fabric saves used a Fabric data attachment; `LivelyVillagersFabric` migrates it on entity load.
 - `LivelyConfig`: `config/lively-villagers.json`.
-- `dev/` (and `src/client/.../dev/`): self-test, raid test, screenshot and film tools. Left out of release jars; `TestHooks` is their only way in.
+- `dev/`: the self-test and raid test (common, both loaders), screenshot and film tools (Fabric only), and each loader's test client. Left out of release jars; `TestHooks` is their only way in.
 
 ## Testing
-- `./gradlew runClient -Pselftest`: flat world, one scripted villager; prints `SELFTEST PASS/FAIL` lines to the log.
-- `./gradlew runClient -Praidtest`: a real raid on a real village (fixed seed); prints `RAIDTEST` lines.
-- `./gradlew runClient -Pshowcase` / `-Pfilm [-PfilmOnly=06-danger]`: hero screenshots / showcase footage.
-- Release jar check: drop `build/libs/lively-villagers-<version>.jar` and Fabric API into a dedicated Fabric server and summon/kill villagers.
+- `./gradlew :fabric:runClient -Pselftest` / `:neoforge:runClient -Pselftest`: flat world, one scripted villager; prints `SELFTEST PASS/FAIL` lines.
+- `./gradlew :fabric:runClient -Praidtest` / `:neoforge:runClient -Praidtest`: a real raid on a real village (fixed seed); prints `RAIDTEST` lines.
+- `./gradlew :fabric:runClient -Pshowcase` / `-Pfilm [-PfilmOnly=06-danger]`: hero screenshots / showcase footage.
+- Release jar check: put the jar into a dedicated Fabric (with Fabric API) or NeoForge server; `/lively reload`, summon a villager with `{LivelyVillagers:{name:"Testy",personality:"grumpy"}}`, `data get` it back.
 
 ## Target
 - Minecraft Java **1.21.1**, Fabric Loader **0.19.5**, Fabric API **0.116.17+1.21.1**, Loom **1.18-SNAPSHOT** (`fabric-loom-remap`), Mojang mappings.
@@ -56,3 +61,9 @@ Loader API + Mixin. Everything is server-side using vanilla packets (text_displa
 12. HEARD_BELL_TIME is the memory the bell sets; setting it on neighbours sends them to hide (the raid alarm).
 13. Raids.createOrExtendRaid needs occupied village POIs; the flat test world has none, so raid tests run in the real showcase village (-Praidtest).
 14. Release jar: dev tools are excluded in the jar task and their fabric.mod.json lines (comma-first) filtered out; LivelyVillagers loads dev tools by reflection. Verified on a real dedicated Fabric server.
+
+## 1.1.0 notes
+15. NeoForge 21.1 runs Mojang names natively, so the common mixins need no refmap there; Loom remaps them for Fabric.
+16. NeoForge's `LivingDeathEvent` fires before death (cancellable; listen at LOWEST, skip cancelled) and `BlockEvent.BreakEvent` before the break; Fabric's equivalents fire after. Neither difference matters to the handlers.
+17. `displayTest = "IGNORE_ALL_VERSION"` in neoforge.mods.toml keeps the NeoForge build server-side only.
+18. Raid test timing: a wave can spawn out of sight; keep it alive until villagers have seen raiders.

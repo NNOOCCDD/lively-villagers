@@ -2,7 +2,6 @@ package com.livelyvillagers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,8 +54,16 @@ public class LivelyConfig {
 		}
 	}
 
+	private static Path file;
+
+	/** Called once at startup with the loader's config folder. */
+	public static void init(Path configDir) {
+		file = configDir.resolve("lively-villagers.json");
+		load();
+	}
+
 	public static void load() {
-		Path path = FabricLoader.getInstance().getConfigDir().resolve("lively-villagers.json");
+		Path path = file;
 		try {
 			if (Files.exists(path)) {
 				LivelyConfig loaded = GSON.fromJson(Files.readString(path), LivelyConfig.class);

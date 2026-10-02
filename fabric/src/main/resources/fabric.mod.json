@@ -13,7 +13,7 @@
 	"icon": "assets/livelyvillagers/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["com.livelyvillagers.LivelyVillagers"]
+		"main": ["com.livelyvillagers.fabric.LivelyVillagersFabric"]
 		,"client": ["com.livelyvillagers.dev.client.SelfTestClient"]
 	},
 	"mixins": [

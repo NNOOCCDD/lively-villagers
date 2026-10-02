@@ -7,7 +7,6 @@ import com.livelyvillagers.TestHooks;
 import com.livelyvillagers.VillagerState;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -391,7 +390,7 @@ public final class Film {
 	static void poke() {
 		for (Entity e : cast) {
 			if (e instanceof Villager v) {
-				UseEntityCallback.EVENT.invoker().interact(Showcase.player, Showcase.level, InteractionHand.MAIN_HAND, v, null);
+				LivelyVillagers.onUseEntity(Showcase.player, Showcase.level, InteractionHand.MAIN_HAND, v);
 				// The vanilla side too: head shake and the "no" sound.
 				Showcase.player.interactOn(v, InteractionHand.MAIN_HAND);
 				return;

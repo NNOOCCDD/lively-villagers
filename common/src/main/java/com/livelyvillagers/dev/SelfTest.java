@@ -7,9 +7,6 @@ import com.livelyvillagers.SpeechBubbles;
 import com.livelyvillagers.TestHooks;
 import com.livelyvillagers.VillagerMind;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
@@ -70,11 +67,11 @@ public final class SelfTest {
 				events.add(event);
 			}
 		};
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			player = handler.getPlayer();
-			startTick = server.getTickCount() + 60;
+		TestHooks.onPlayerJoin(p -> {
+			player = p;
+			startTick = p.getServer().getTickCount() + 60;
 		});
-		ServerTickEvents.END_SERVER_TICK.register(SelfTest::tick);
+		TestHooks.onServerTick(SelfTest::tick);
 	}
 
 	private static void tick(MinecraftServer server) {
@@ -425,7 +422,7 @@ public final class SelfTest {
 	}
 
 	private static void rightClick(ServerLevel level) {
-		UseEntityCallback.EVENT.invoker().interact(player, level, InteractionHand.MAIN_HAND, villager, null);
+		LivelyVillagers.onUseEntity(player, level, InteractionHand.MAIN_HAND, villager);
 	}
 
 	private static void throwGift(ServerLevel level, Item item) {

@@ -1,0 +1,40 @@
+// A loader project (fabric, neoforge): compiles the shared `common` sources and resources into its own jar.
+plugins {
+	id 'lively-common'
+}
+
+configurations {
+	commonJava {
+		canBeResolved = true
+	}
+	commonResources {
+		canBeResolved = true
+	}
+}
+
+dependencies {
+	compileOnly project(':common')
+	commonJava project(path: ':common', configuration: 'commonJava')
+	commonResources project(path: ':common', configuration: 'commonResources')
+}
+
+tasks.named('compileJava', JavaCompile) {
+	dependsOn(configurations.commonJava)
+	source(configurations.commonJava)
+}
+
+processResources {
+	dependsOn(configurations.commonResources)
+	from(configurations.commonResources)
+}
+
+tasks.named('sourcesJar', Jar) {
+	dependsOn(configurations.commonJava, configurations.commonResources)
+	from(configurations.commonJava)
+	from(configurations.commonResources)
+}
+
+// Release jars leave out the dev-only tools (self-test, raid test, screenshot and film directors).
+jar {
+	exclude 'com/livelyvillagers/dev/**'
+}

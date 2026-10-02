@@ -24,8 +24,8 @@ No new blocks, items or textures: just villagers that feel like they live there.
 - **Introductions:** sneak and right-click a villager with an empty hand to have them introduce themselves.
 
 ## Install
-1. Install Fabric Loader for 1.21.1 and [Fabric API](https://modrinth.com/mod/fabric-api).
-2. Put `lively-villagers-<version>.jar` in your `mods` folder.
+- **Fabric:** install Fabric Loader for 1.21.1 and [Fabric API](https://modrinth.com/mod/fabric-api), then put `lively-villagers-fabric-<version>.jar` in your `mods` folder.
+- **NeoForge:** install NeoForge for 1.21.1, then put `lively-villagers-neoforge-<version>.jar` in your `mods` folder.
 
 It's server-side: on a server, only the server needs it; players can join with a vanilla client.
 
@@ -47,15 +47,17 @@ radius and cooldown, and set how much reputation gifts give.
 
 ## Building
 
-Gradle needs **JDK 25** (Loom 1.18); the mod itself targets Java 21, so a JDK 21 must be installed too.
+One build makes both loaders' jars. Gradle needs **JDK 25** (Fabric Loom 1.18); the mod targets Java 21, so a JDK 21 must be installed too.
 
 ```
-./gradlew build                      # jar in build/libs/
-./gradlew runClient -Pselftest       # scripted in-game test (SELFTEST lines in the log)
-./gradlew runClient -Praidtest       # a real raid on a real village (RAIDTEST lines)
+./gradlew build                                # fabric/build/libs/ and neoforge/build/libs/
+./gradlew :fabric:runClient -Pselftest         # scripted in-game test (SELFTEST lines in the log)
+./gradlew :neoforge:runClient -Pselftest       # the same test on NeoForge
+./gradlew :fabric:runClient -Praidtest         # a real raid on a real village (RAIDTEST lines)
 ```
 
-More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): code layout, testing, and notes on vanilla villager internals.
+Layout: `common/` holds all the gameplay code (plain Minecraft, Mojang names); `fabric/` and `neoforge/` only
+connect their loader's events to it. More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## License
 

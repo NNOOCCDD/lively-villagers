@@ -51,9 +51,11 @@ At sunset villagers get sleepy: *"Time to turn in for the night."* Their greetin
 
 ## 🛠️ Installation
 
-1. Install **Fabric Loader** for Minecraft **1.21.1**.
-2. Put **[Fabric API](https://modrinth.com/mod/fabric-api)** and **Lively Villagers** in your `mods` folder.
-3. Launch and go say hi to a villager.
+**Fabric:** install Fabric Loader for Minecraft **1.21.1**, then put **[Fabric API](https://modrinth.com/mod/fabric-api)** and the Fabric version of Lively Villagers in your `mods` folder.
+
+**NeoForge:** install NeoForge for Minecraft **1.21.1**, then put the NeoForge version of Lively Villagers in your `mods` folder.
+
+Then launch and go say hi to a villager.
 
 **Server-side:** on a server, only the server needs the mod. Players can join with a vanilla client. It also works in singleplayer and LAN worlds.
 

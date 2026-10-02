@@ -1,8 +1,13 @@
 package com.livelyvillagers;
 
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.Villager;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Seams for the dev-only tools (self-test, raid test, screenshot and film directors). Nothing in a
@@ -19,6 +24,26 @@ public final class TestHooks {
 	public static String nextLineOverride;
 	/** Speech-bubble size multiplier, for wide screenshots. */
 	public static float bubbleScale = 1.0F;
+
+	private static final List<Consumer<MinecraftServer>> TICK = new ArrayList<>();
+	private static final List<Consumer<ServerPlayer>> JOIN = new ArrayList<>();
+
+	/** Loader-neutral server tick and player join, for tools that run in both Fabric and NeoForge. */
+	public static void onServerTick(Consumer<MinecraftServer> listener) {
+		TICK.add(listener);
+	}
+
+	public static void onPlayerJoin(Consumer<ServerPlayer> listener) {
+		JOIN.add(listener);
+	}
+
+	static void serverTick(MinecraftServer server) {
+		TICK.forEach(l -> l.accept(server));
+	}
+
+	static void playerJoin(ServerPlayer player) {
+		JOIN.forEach(l -> l.accept(player));
+	}
 
 	public static boolean forced() {
 		return forcedChance >= 0;

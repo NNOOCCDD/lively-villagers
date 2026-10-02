@@ -27,7 +27,7 @@ public final class Speech {
 	 * and sounds all day. `sound` may be null when vanilla already plays one.
 	 */
 	public static void say(Villager v, Topic topic, SoundEvent sound, Map<String, String> vars) {
-		if (!(v.level() instanceof ServerLevel level) || !anyoneListening(level, v)) {
+		if (!canBeHeard(v)) {
 			TestHooks.nextLineOverride = null;
 			return;
 		}
@@ -48,8 +48,10 @@ public final class Speech {
 		LivelyVillagers.trace(topic.name(), v, line);
 	}
 
-	private static boolean anyoneListening(ServerLevel level, Villager v) {
-		return level.getNearestPlayer(v.getX(), v.getY(), v.getZ(), HEARING_RANGE, p -> !p.isSpectator()) != null;
+	/** Whether any player is close enough to hear this villager. */
+	public static boolean canBeHeard(Villager v) {
+		return v.level() instanceof ServerLevel level
+			&& level.getNearestPlayer(v.getX(), v.getY(), v.getZ(), HEARING_RANGE, p -> !p.isSpectator()) != null;
 	}
 
 	/** The name tag if it has one, otherwise the name the mod gave it. */

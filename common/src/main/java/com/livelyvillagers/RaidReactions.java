@@ -29,12 +29,15 @@ public final class RaidReactions {
 			state.raidId = raid.getId();
 			state.raidShouts = 0;
 			state.raidHeroSaid = false;
-			if (!v.isSleeping() && v.getRandom().nextFloat() < TestHooks.chance(0.35F) && takeRaidWarning(raid.getId(), level.getGameTime())) {
-				state.raidShouts++;
-				level.broadcastEntityEvent(v, Speech.SWEAT);
-				Speech.say(v, Topic.RAID_START, SoundEvents.VILLAGER_NO, Map.of());
+			if (!v.isSleeping() && v.getRandom().nextFloat() < TestHooks.chance(0.35F)) {
+				// The alarm works anywhere; the few spoken warnings go to villagers a player can hear.
 				if (LivelyConfig.get().raidAlarm) {
 					soundAlarm(v, level);
+				}
+				if (Speech.canBeHeard(v) && takeRaidWarning(raid.getId(), level.getGameTime())) {
+					state.raidShouts++;
+					level.broadcastEntityEvent(v, Speech.SWEAT);
+					Speech.say(v, Topic.RAID_START, SoundEvents.VILLAGER_NO, Map.of());
 				}
 			}
 		} else if (!ongoing && state.raidId != -1) {
