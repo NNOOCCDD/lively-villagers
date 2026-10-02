@@ -1,5 +1,7 @@
 package com.livelyvillagers;
 
+import net.minecraft.world.item.Item;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,6 +17,7 @@ public class VillagerState {
 	public long nextPanicShout;
 	public long nextBlockReaction;
 	public long nextChatter;
-	/** Game time at which to take a gifted flower back out of the villager's hand. */
+	/** A gift the villager shows off in its hand until clearHandAt (game time). */
+	public Item heldGift;
 	public long clearHandAt = -1;
 }

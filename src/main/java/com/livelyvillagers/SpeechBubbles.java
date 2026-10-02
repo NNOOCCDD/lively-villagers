@@ -44,6 +44,8 @@ public final class SpeechBubbles {
 		tag.putString("id", "minecraft:text_display");
 		tag.putString("text", Component.Serializer.toJson(component, level.registryAccess()));
 		tag.putString("billboard", "center");
+		// Vanilla decodes "alignment" even when absent and logs an error, so always set it.
+		tag.putString("alignment", "center");
 		tag.putInt("background", BACKGROUND);
 		tag.putInt("line_width", 150);
 		tag.putInt("teleport_duration", 2);

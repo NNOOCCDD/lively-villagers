@@ -68,10 +68,16 @@ public final class Reactions {
 		long now = level.getGameTime();
 		VillagerState state = LivelyVillagers.state(v);
 
-		if (state.clearHandAt > 0 && now >= state.clearHandAt) {
-			state.clearHandAt = -1;
-			if (!v.isTrading() && isGift(v.getMainHandItem())) {
-				v.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+		if (state.heldGift != null) {
+			if (now >= state.clearHandAt) {
+				if (!v.isTrading() && v.getMainHandItem().is(state.heldGift)) {
+					v.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+				}
+				state.heldGift = null;
+			} else if (!v.isTrading() && v.getMainHandItem().isEmpty()) {
+				// ShowTradesToPlayer empties the hand every tick while a player is near; this runs after the
+				// brain, so the gift is what gets synced. Trade previews still win because they fill the hand.
+				v.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(state.heldGift));
 			}
 		}
 
@@ -352,8 +358,9 @@ public final class Reactions {
 		}
 
 		VillagerState state = LivelyVillagers.state(v);
-		if (!v.isTrading() && v.getMainHandItem().isEmpty()) {
+		if (!v.isTrading() && (v.getMainHandItem().isEmpty() || state.heldGift != null)) {
 			v.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(item));
+			state.heldGift = item;
 			state.clearHandAt = level.getGameTime() + 100;
 		}
 

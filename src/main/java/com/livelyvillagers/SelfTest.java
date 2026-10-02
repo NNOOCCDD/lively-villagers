@@ -124,7 +124,7 @@ public final class SelfTest {
 				place(level, Items.COMPOSTER, base.offset(2, 0, 1));
 			}
 			case 360 -> {
-				expect("composter placed", "LOVE_JOB_SITE", "WANT_JOB_SITE");
+				expect("composter placed", "LOVE_JOB_SITE");
 				screenshot.accept("4-loves-job-site");
 			}
 			// Throw a flower into the pen -> gift, reputation goes up.
@@ -219,6 +219,8 @@ public final class SelfTest {
 		}
 		villager = EntityType.VILLAGER.spawn(level, base, MobSpawnType.COMMAND);
 		villager.setVillagerData(villager.getVillagerData().setProfession(VillagerProfession.FARMER));
+		// Vanilla drops the profession of a level-1, 0 XP villager with no job site; keep this one a farmer.
+		villager.setVillagerXp(1);
 		LivelyVillagers.setMind(villager, new VillagerMind("Barnaby", Personality.CHEERFUL, Map.of()));
 		// Start far away, out of greeting range.
 		face(level, base.offset(0, 0, -12));

@@ -18,3 +18,11 @@ Loader API + Mixin. Everything is server-side using vanilla packets (text_displa
 
 ## Log
 - 2026-10-02: scaffolded, genSources OK.
+- 2026-10-02: v1 features in; `./gradlew runClient -Pselftest` → 13 PASS, 0 FAIL, 1 SKIP (job-site break: penned villager can't path to claim the composter). Screenshots in run/screenshots.
+
+## Gotchas found
+1. Loom 1.18 refuses to run on Java 21 ("requires at least JVM runtime version 25"); compile still targets 21 via toolchain.
+2. text_display NBT without "alignment" logs `Display entityNot a string` (vanilla decodes it unconditionally).
+3. `ShowTradesToPlayer` clears the villager's main hand every tick while a player is within ~4 blocks; re-equip held gifts after the brain tick (customServerAiStep TAIL) and the equipment sync never sees the gap.
+4. A FARMER set by command with 0 XP and no job site reverts to NONE (ResetProfession); give it 1 XP in tests.
+5. ServerEntityEvents.ENTITY_LOAD also fires for addFreshEntity — register bubbles before adding them or the stale-bubble cleanup kills them.
