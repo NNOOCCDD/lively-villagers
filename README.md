@@ -3,7 +3,7 @@
 A Fabric mod for Minecraft Java 1.21.1 that makes villagers feel alive. Every villager gets a name and a
 personality (cheerful, curious, shy or grumpy), and talks through speech bubbles above their heads.
 
-- **Greetings:** walk past a villager and they may say hi. How often depends on their personality; what they
+- **Greetings:** walk within 7 blocks of a villager and they may say hi (cheerful always, curious usually, grumpy and shy about half the time). If they stay quiet they get another chance after 15 seconds; once they greet you they wait 90 seconds.
   say depends on your reputation, the time of day and the weather.
 - **Block reactions:** villagers react to blocks placed near them. They love their own workstation, like
   flowers, lanterns, beds and crops, dislike skulls, cobwebs and magma, are scared of TNT, and complain if you

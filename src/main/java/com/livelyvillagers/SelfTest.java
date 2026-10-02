@@ -237,10 +237,55 @@ public final class SelfTest {
 				expect("night right-click jobless", "CLICK_JOBLESS_NIGHT");
 				screenshot.accept("12-night-click");
 			}
-			case 1620 -> finish();
+			// Realistic walk-by: 8 penned villagers with random personalities, real odds, walking speed.
+			case 1620 -> setupWalk(level);
 			default -> {
+				if (t > 1640 && t <= 1640 + WALK_TICKS) {
+					walkStep(level, t - 1640);
+				} else if (t == 1640 + WALK_TICKS + 20) {
+					long greeted = walkers.stream().filter(greetedWalkers::contains).count();
+					results.add("INFO walk-by: " + greeted + "/" + walkers.size() + " villagers said hi " + walkLog);
+					finish();
+				}
 			}
 		}
+	}
+
+	private static final int WALK_TICKS = 220;
+	private static final List<Villager> walkers = new ArrayList<>();
+	private static final java.util.Set<Villager> greetedWalkers = new java.util.HashSet<>();
+	private static final List<String> walkLog = new ArrayList<>();
+	private static BlockPos walkStart;
+
+	private static void setupWalk(ServerLevel level) {
+		LivelyVillagers.forcedChance = -1;
+		level.setDayTime(6000);
+		walkStart = base.offset(-8, 0, 20);
+		for (int i = 0; i < 8; i++) {
+			BlockPos pos = walkStart.offset(4 + i * 5, 0, (i % 2 == 0) ? 5 : -5);
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					if (dx != 0 || dz != 0) {
+						level.setBlockAndUpdate(pos.offset(dx, 0, dz), Blocks.OAK_FENCE.defaultBlockState());
+					}
+				}
+			}
+			Villager w = EntityType.VILLAGER.spawn(level, pos, MobSpawnType.COMMAND);
+			walkers.add(w);
+			walkLog.add(LivelyVillagers.mind(w).personality().getSerializedName());
+		}
+		LivelyVillagers.traceListener = LivelyVillagers.traceListener.andThen((event, v) -> {
+			if (walkers.contains(v) && event.startsWith("GREET")) {
+				greetedWalkers.add(v);
+			}
+		});
+		player.teleportTo(level, walkStart.getX() + 0.5, walkStart.getY(), walkStart.getZ() + 0.5, -90.0F, 10.0F);
+	}
+
+	/** Walking speed is about 4.3 blocks per second. */
+	private static void walkStep(ServerLevel level, int step) {
+		double x = walkStart.getX() + 0.5 + step * 0.2158;
+		player.teleportTo(level, x, walkStart.getY(), walkStart.getZ() + 0.5, -90.0F, 10.0F);
 	}
 
 	private static void setup(ServerLevel level, MinecraftServer server) {

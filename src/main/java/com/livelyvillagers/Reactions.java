@@ -141,18 +141,22 @@ public final class Reactions {
 		if (newcomer == null) {
 			return;
 		}
-		long cooldown = LivelyConfig.get().greetCooldownSeconds * 20L;
-		Long last = state.lastGreeted.get(newcomer.getUUID());
-		if (last != null && now - last < cooldown) {
+		// lastGreeted holds the earliest time this player may be greeted again.
+		Long allowedAt = state.lastGreeted.get(newcomer.getUUID());
+		if (allowedAt != null && now < allowedAt) {
 			return;
 		}
-		state.lastGreeted.put(newcomer.getUUID(), now);
+		LivelyConfig cfg = LivelyConfig.get();
 		VillagerMind mind = LivelyVillagers.mind(v);
-		float chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : mind.personality().greetChance;
+		double chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance
+			: mind.personality().greetChance * cfg.greetChanceMultiplier;
 		if (v.getRandom().nextFloat() >= chance) {
+			// A quiet moment shouldn't lock the villager out for the full cooldown.
+			state.lastGreeted.put(newcomer.getUUID(), now + cfg.greetRetrySeconds * 20L);
 			LivelyVillagers.trace("greet-skip", v, newcomer.getScoreboardName());
 			return;
 		}
+		state.lastGreeted.put(newcomer.getUUID(), now + cfg.greetCooldownSeconds * 20L);
 
 		int rep = v.getPlayerReputation(newcomer);
 		Topic topic;

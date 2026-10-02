@@ -6,10 +6,10 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Locale;
 
 public enum Personality implements StringRepresentable {
-	CHEERFUL(0.9F, 1.15F),
-	CURIOUS(0.6F, 1.05F),
-	SHY(0.25F, 1.2F),
-	GRUMPY(0.35F, 0.85F);
+	CHEERFUL(1.0F, 1.15F),
+	CURIOUS(0.85F, 1.05F),
+	SHY(0.5F, 1.2F),
+	GRUMPY(0.6F, 0.85F);
 
 	public static final Codec<Personality> CODEC = StringRepresentable.fromEnum(Personality::values);
 

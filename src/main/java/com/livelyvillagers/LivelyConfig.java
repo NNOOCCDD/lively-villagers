@@ -12,9 +12,13 @@ import java.nio.file.Path;
 public class LivelyConfig {
 	public boolean speechBubbles = true;
 	public boolean greetings = true;
-	public double greetRadius = 5.0;
+	public double greetRadius = 7.0;
 	/** Seconds before the same villager may greet the same player again. */
 	public int greetCooldownSeconds = 90;
+	/** Seconds before a villager that chose not to say hi gets another chance. */
+	public int greetRetrySeconds = 15;
+	/** Scales every personality's chance to say hi (1.0 = cheerful always, shy half the time). */
+	public double greetChanceMultiplier = 1.0;
 	public boolean blockReactions = true;
 	public double blockReactRadius = 7.0;
 	public boolean gifts = true;
@@ -25,11 +29,24 @@ public class LivelyConfig {
 	public boolean extraDangers = true;
 	public boolean dangerShouts = true;
 
+	/** Bumped when a default changes, so untouched old values can be migrated. */
+	public int configVersion = 2;
+
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static LivelyConfig instance = new LivelyConfig();
 
 	public static LivelyConfig get() {
 		return instance;
+	}
+
+	private static void migrate(String json) {
+		if (!json.contains("configVersion")) {
+			// v1 shipped a 5-block greeting radius, which made walk-by greetings rare.
+			if (instance.greetRadius == 5.0) {
+				instance.greetRadius = 7.0;
+			}
+			instance.configVersion = 2;
+		}
 	}
 
 	public static void load() {
@@ -39,6 +56,7 @@ public class LivelyConfig {
 				LivelyConfig loaded = GSON.fromJson(Files.readString(path), LivelyConfig.class);
 				if (loaded != null) {
 					instance = loaded;
+					migrate(Files.readString(path));
 				}
 			}
 			// Rewrite so new options show up in older files.
