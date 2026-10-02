@@ -12,7 +12,10 @@
 		"main": ["com.livelyvillagers.LivelyVillagers"],
 		"client": ["com.livelyvillagers.client.SelfTestClient"]
 	},
-	"mixins": ["livelyvillagers.mixins.json"],
+	"mixins": [
+		"livelyvillagers.mixins.json",
+		{"config": "livelyvillagers.client.mixins.json", "environment": "client"}
+	],
 	"depends": {
 		"fabricloader": ">=0.16.0",
 		"minecraft": "~1.21.1",

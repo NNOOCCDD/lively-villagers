@@ -23,10 +23,13 @@ import net.minecraft.world.level.levelgen.presets.WorldPresets;
 public class SelfTestClient implements ClientModInitializer {
 	private static boolean started;
 	private static boolean showcase;
+	private static boolean film;
 
 	@Override
 	public void onInitializeClient() {
-		showcase = Boolean.getBoolean("livelyvillagers.showcase");
+		film = Boolean.getBoolean("livelyvillagers.film");
+		// Film mode needs the same real-terrain world as the showcase.
+		showcase = Boolean.getBoolean("livelyvillagers.showcase") || film;
 		if (!Boolean.getBoolean("livelyvillagers.selftest") && !showcase) {
 			return;
 		}
@@ -40,7 +43,14 @@ public class SelfTestClient implements ClientModInitializer {
 		});
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
 			client.options.hideGui = true;
-			if (showcase) {
+			if (film) {
+				client.options.renderDistance().set(12);
+				client.options.fov().set(70);
+				client.options.pauseOnLostFocus = false;
+				client.options.getSoundSourceOptionInstance(net.minecraft.sounds.SoundSource.MUSIC).set(0.0);
+				client.options.getSoundSourceOptionInstance(net.minecraft.sounds.SoundSource.MASTER).set(1.0);
+				FilmClient.install();
+			} else if (showcase) {
 				client.options.renderDistance().set(16);
 				client.options.particles().set(net.minecraft.client.ParticleStatus.ALL);
 				client.options.fov().set(60);

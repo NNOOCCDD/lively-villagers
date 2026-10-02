@@ -57,13 +57,13 @@ public final class Showcase {
 	private static final Deque<Step> steps = new ArrayDeque<>();
 	private static final List<Entity> actors = new ArrayList<>();
 	private static final Map<BlockPos, BlockState> placed = new LinkedHashMap<>();
-	private static ServerPlayer player;
-	private static ServerLevel level;
+	static ServerPlayer player;
+	static ServerLevel level;
 	private static int wait = -1;
 
 	/** The open patch in front of the village where actors stand, and the direction the camera looks. */
-	private static BlockPos stage;
-	private static Vec3 look;
+	static BlockPos stage;
+	static Vec3 look;
 
 	static void install() {
 		SpeechBubbles.scaleBoost = 1.25F;
@@ -290,7 +290,7 @@ public final class Showcase {
 		}
 	}
 
-	private static BlockPos locate(ResourceKey<Structure> key, BlockPos from) {
+	static BlockPos locate(ResourceKey<Structure> key, BlockPos from) {
 		Holder<Structure> structure = level.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(key);
 		Pair<BlockPos, Holder<Structure>> result = level.getChunkSource().getGenerator()
 			.findNearestMapStructure(level, HolderSet.direct(structure), from, 120, false);
@@ -301,7 +301,7 @@ public final class Showcase {
 	 * Find a flat, open patch at street level near the bell, looking back toward the bell so houses fill
 	 * the background, with a clear view from where the cameras will stand.
 	 */
-	private static boolean pickStage(BlockPos bell) {
+	static boolean pickStage(BlockPos bell) {
 		BlockPos best = null;
 		Vec3 bestLook = null;
 		double bestScore = Double.MAX_VALUE;
@@ -366,7 +366,7 @@ public final class Showcase {
 		return true;
 	}
 
-	private static BlockPos ground(BlockPos p) {
+	static BlockPos ground(BlockPos p) {
 		return new BlockPos(p.getX(), level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, p.getX(), p.getZ()), p.getZ());
 	}
 
@@ -497,7 +497,7 @@ public final class Showcase {
 		}
 	}
 
-	private static void aim(Vec3 cam, Vec3 target) {
+	static void aim(Vec3 cam, Vec3 target) {
 		Vec3 d = target.subtract(cam);
 		float yaw = (float) (Math.toDegrees(Math.atan2(d.z, d.x)) - 90.0);
 		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));

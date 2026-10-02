@@ -112,7 +112,8 @@ public final class Reactions {
 		if (resting && !state.wasResting) {
 			float chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : 0.4F;
 			// Everyone switches on the same tick; spread the mumbling over the next ~10 seconds.
-			state.bedtimeLineAt = v.getRandom().nextFloat() < chance ? now + 20 + v.getRandom().nextInt(180) : -1;
+			int spread = LivelyVillagers.forcedChance >= 0 ? 60 : 180;
+			state.bedtimeLineAt = v.getRandom().nextFloat() < chance ? now + 10 + v.getRandom().nextInt(spread) : -1;
 		}
 		state.wasResting = resting;
 		if (state.bedtimeLineAt < 0 || now < state.bedtimeLineAt) {
@@ -476,9 +477,14 @@ public final class Reactions {
 		say(v, v.isBaby() ? Topic.GREET_BABY : Topic.INTRO, SoundEvents.VILLAGER_AMBIENT, vars);
 	}
 
+	/** Dev film only: the next line spoken, instead of a random pick. */
+	public static String nextLineOverride;
+
 	public static void say(Villager v, Topic topic, SoundEvent sound, Map<String, String> vars) {
 		VillagerMind mind = LivelyVillagers.mind(v);
-		String line = Lines.pick(topic, mind.personality(), v.getRandom())
+		String picked = nextLineOverride != null ? nextLineOverride : Lines.pick(topic, mind.personality(), v.getRandom());
+		nextLineOverride = null;
+		String line = picked
 			.replace("{name}", displayName(v))
 			.replace("{job}", jobName(v));
 		for (Map.Entry<String, String> e : vars.entrySet()) {

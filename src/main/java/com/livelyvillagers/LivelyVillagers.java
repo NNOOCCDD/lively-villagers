@@ -99,6 +99,8 @@ public class LivelyVillagers implements ModInitializer {
 			SelfTest.install();
 		} else if (Boolean.getBoolean("livelyvillagers.showcase")) {
 			Showcase.install();
+		} else if (Boolean.getBoolean("livelyvillagers.film")) {
+			Film.install();
 		}
 		LOGGER.info("Lively Villagers loaded");
 	}
