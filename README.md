@@ -44,4 +44,5 @@ Gradle needs JDK 25 (Loom 1.18); the mod targets Java 21.
 ```
 JAVA_HOME=/path/to/jdk-25 ./gradlew build              # jar in build/libs
 JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Pselftest  # scripted in-game test + screenshots in run/screenshots
+JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Pshowcase   # staged hero screenshots in real villages (1920x1080)
 ```

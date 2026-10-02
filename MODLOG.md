@@ -26,3 +26,10 @@ Loader API + Mixin. Everything is server-side using vanilla packets (text_displa
 3. `ShowTradesToPlayer` clears the villager's main hand every tick while a player is within ~4 blocks; re-equip held gifts after the brain tick (customServerAiStep TAIL) and the equipment sync never sees the gap.
 4. A FARMER set by command with 0 XP and no job site reverts to NONE (ResetProfession); give it 1 XP in tests.
 5. ServerEntityEvents.ENTITY_LOAD also fires for addFreshEntity — register bubbles before adding them or the stale-bubble cleanup kills them.
+- 2026-10-02: hero screenshots via `./gradlew runClient -Pshowcase` (Showcase.java, 1920x1080, spectator camera, HUD hidden). Curated set in screenshots/ (gitignored, ~18 MB).
+
+## Showcase gotchas
+6. Heightmap "ground" lands on roofs and hillsides; constrain the stage to within -2..+1 of the bell's Y and raycast camera→stage.
+7. Snow layers and short grass are not air; use `canBeReplaced()` when checking open ground, or every snowy street gets rejected (and the picker falls back to frozen ponds).
+8. Real villagers wander into the foreground; discard non-actor mobs on the camera side before each shot.
+9. Locating a snowy village from a far-away desert took ~8 min of server-thread time; give runs a long timeout.

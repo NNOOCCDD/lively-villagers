@@ -20,6 +20,10 @@ loom {
 			if (project.hasProperty("selftest")) {
 				vmArg "-Dlivelyvillagers.selftest=true"
 			}
+			if (project.hasProperty("showcase")) {
+				vmArg "-Dlivelyvillagers.showcase=true"
+				programArgs "--width", "1920", "--height", "1080"
+			}
 		}
 		server {
 			vmArg "-Dlivelyvillagers.debug=true"

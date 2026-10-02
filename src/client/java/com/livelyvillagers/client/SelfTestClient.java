@@ -22,10 +22,12 @@ import net.minecraft.world.level.levelgen.presets.WorldPresets;
 /** Dev-only: with -Dlivelyvillagers.selftest=true, makes a fresh flat world, runs SelfTest and screenshots it. */
 public class SelfTestClient implements ClientModInitializer {
 	private static boolean started;
+	private static boolean showcase;
 
 	@Override
 	public void onInitializeClient() {
-		if (!Boolean.getBoolean("livelyvillagers.selftest")) {
+		showcase = Boolean.getBoolean("livelyvillagers.showcase");
+		if (!Boolean.getBoolean("livelyvillagers.selftest") && !showcase) {
 			return;
 		}
 		ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
@@ -36,7 +38,14 @@ public class SelfTestClient implements ClientModInitializer {
 				client.execute(() -> createWorld(client, screen));
 			}
 		});
-		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.options.hideGui = true);
+		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+			client.options.hideGui = true;
+			if (showcase) {
+				client.options.renderDistance().set(16);
+				client.options.particles().set(net.minecraft.client.ParticleStatus.ALL);
+				client.options.fov().set(60);
+			}
+		});
 		SelfTest.screenshot = name -> {
 			Minecraft client = Minecraft.getInstance();
 			client.execute(() -> Screenshot.grab(client.gameDirectory, "lively-" + name + ".png", client.getMainRenderTarget(),
@@ -46,10 +55,11 @@ public class SelfTestClient implements ClientModInitializer {
 	}
 
 	private static void createWorld(Minecraft client, Screen parent) {
-		String name = "lively-test-" + System.currentTimeMillis() / 1000;
+		String name = (showcase ? "lively-showcase-" : "lively-test-") + System.currentTimeMillis() / 1000;
 		LevelSettings settings = new LevelSettings(name, GameType.CREATIVE, false, Difficulty.EASY, true, new GameRules(), WorldDataConfiguration.DEFAULT);
-		client.createWorldOpenFlows().createFreshLevel(name, settings, new WorldOptions(20261002L, false, false),
-			registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions(),
+		var preset = showcase ? WorldPresets.NORMAL : WorldPresets.FLAT;
+		client.createWorldOpenFlows().createFreshLevel(name, settings, new WorldOptions(20261002L, showcase, false),
+			registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(preset).value().createWorldDimensions(),
 			parent);
 	}
 }

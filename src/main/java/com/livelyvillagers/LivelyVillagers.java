@@ -97,6 +97,8 @@ public class LivelyVillagers implements ModInitializer {
 
 		if (Boolean.getBoolean("livelyvillagers.selftest")) {
 			SelfTest.install();
+		} else if (Boolean.getBoolean("livelyvillagers.showcase")) {
+			Showcase.install();
 		}
 		LOGGER.info("Lively Villagers loaded");
 	}
