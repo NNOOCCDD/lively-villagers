@@ -27,7 +27,8 @@ public final class SpeechBubbles {
 	private static final int TEXT_COLOR = 0x3B2A1A;
 	private static final int BACKGROUND = 0xE8F4EBD9;
 
-	private record Bubble(Display.TextDisplay display, Villager villager, long expiresAt) {
+	/** follow = false keeps the bubble where it appeared (last words: the villager is going away). */
+	private record Bubble(Display.TextDisplay display, Villager villager, long expiresAt, boolean follow) {
 	}
 
 	private static final Map<UUID, Bubble> ACTIVE = new HashMap<>();
@@ -71,7 +72,7 @@ public final class SpeechBubbles {
 		display.addTag(TAG);
 		int ticks = Math.min(140, 50 + text.length() * 2);
 		// Register before adding: adding fires ENTITY_LOAD, which discards untracked bubbles.
-		ACTIVE.put(villager.getUUID(), new Bubble(display, villager, level.getGameTime() + ticks));
+		ACTIVE.put(villager.getUUID(), new Bubble(display, villager, level.getGameTime() + ticks, !villager.isDeadOrDying()));
 		level.addFreshEntity(display);
 	}
 
@@ -83,13 +84,15 @@ public final class SpeechBubbles {
 		Iterator<Bubble> it = ACTIVE.values().iterator();
 		while (it.hasNext()) {
 			Bubble b = it.next();
-			if (b.villager.isRemoved() || b.display.isRemoved() || b.villager.level() != b.display.level()
-				|| b.display.level().getGameTime() >= b.expiresAt) {
+			boolean lostVillager = b.follow && (b.villager.isRemoved() || b.villager.level() != b.display.level());
+			if (lostVillager || b.display.isRemoved() || b.display.level().getGameTime() >= b.expiresAt) {
 				b.display.discard();
 				it.remove();
 				continue;
 			}
-			b.display.setPos(b.villager.getX(), bubbleY(b.villager), b.villager.getZ());
+			if (b.follow) {
+				b.display.setPos(b.villager.getX(), bubbleY(b.villager), b.villager.getZ());
+			}
 		}
 	}
 

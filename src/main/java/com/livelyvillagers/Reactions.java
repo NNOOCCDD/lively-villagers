@@ -28,6 +28,8 @@ import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -87,13 +89,22 @@ public final class Reactions {
 		}
 		LivelyConfig cfg = LivelyConfig.get();
 		boolean panicking = v.getBrain().isActive(Activity.PANIC);
+		if (cfg.raidLines) {
+			raid(v, level, state);
+		}
+		boolean inRaid = state.raidId != -1;
+		// During a raid vanilla switches villagers to the RAID/HIDE activities instead of PANIC, so a
+		// raider in sight is what counts as panicking there.
+		boolean threatened = panicking || (inRaid && v.getBrain().hasMemoryValue(MemoryModuleType.NEAREST_HOSTILE));
 		if (cfg.dangerShouts) {
-			panic(v, level, state, panicking, now);
+			panic(v, level, state, threatened, inRaid, now);
 		}
 		if (cfg.extraDangers) {
 			fleeExplosives(v, level, state, now);
 		}
-		if (cfg.greetings && !panicking && !v.isSleeping() && !v.isTrading()) {
+		if (inRaid && !v.isSleeping()) {
+			raidHero(v, level, state);
+		} else if (cfg.greetings && !panicking && !v.isSleeping() && !v.isTrading()) {
 			greet(v, level, state, now);
 		}
 		if (cfg.greetings) {
@@ -101,9 +112,13 @@ public final class Reactions {
 		}
 	}
 
-	/** Night, or the villager's schedule says it's time to rest. */
+	/** Evening/night by the clock (not the sky, which storms darken), or the villager's rest schedule. */
 	public static boolean isSleepyTime(Villager v) {
-		return v.level().isNight() || v.getBrain().isActive(Activity.REST);
+		if (v.level().dimensionType().hasFixedTime()) {
+			return v.getBrain().isActive(Activity.REST);
+		}
+		long time = v.level().getDayTime() % 24000L;
+		return (time >= 12500L && time < 23500L) || v.getBrain().isActive(Activity.REST);
 	}
 
 	/** When the schedule switches to rest, some villagers announce it (only if someone is around to hear). */
@@ -126,10 +141,28 @@ public final class Reactions {
 		}
 	}
 
+	/** Minimum ticks between greetings aimed at the same player, from any villager. */
+	private static final long PLAYER_GREET_GAP = 30;
+	private static final Map<UUID, Long> PLAYER_GREETED_UNTIL = new HashMap<>();
+
+	/** A villager walled in on three or four sides at foot level: a trading-hall or farm cell. */
+	public static boolean isBoxedIn(Villager v, ServerLevel level) {
+		BlockPos feet = v.blockPosition();
+		int walls = 0;
+		for (net.minecraft.core.Direction d : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			BlockPos side = feet.relative(d);
+			if (!level.getBlockState(side).getCollisionShape(level, side).isEmpty()) {
+				walls++;
+			}
+		}
+		return walls >= 3;
+	}
+
 	private static void greet(Villager v, ServerLevel level, VillagerState state, long now) {
 		double r = LivelyConfig.get().greetRadius;
 		List<ServerPlayer> near = level.getEntitiesOfClass(ServerPlayer.class, v.getBoundingBox().inflate(r),
-			p -> p.isAlive() && !p.isSpectator() && p.distanceTo(v) <= r && v.hasLineOfSight(p));
+			p -> p.isAlive() && !p.isSpectator() && !p.isInvisible() && !p.isShiftKeyDown()
+				&& p.distanceTo(v) <= r && v.hasLineOfSight(p));
 		Set<UUID> inRange = new HashSet<>();
 		ServerPlayer newcomer = null;
 		for (ServerPlayer p : near) {
@@ -157,6 +190,15 @@ public final class Reactions {
 			LivelyVillagers.trace("greet-skip", v, newcomer.getScoreboardName());
 			return;
 		}
+		// Walking down a trading hall shouldn't set off every villager at once.
+		Long playerQuietUntil = PLAYER_GREETED_UNTIL.get(newcomer.getUUID());
+		if (LivelyVillagers.forcedChance < 0 && playerQuietUntil != null && now < playerQuietUntil) {
+			return;
+		}
+		if (isBoxedIn(v, level)) {
+			return;
+		}
+		PLAYER_GREETED_UNTIL.put(newcomer.getUUID(), now + PLAYER_GREET_GAP);
 		state.lastGreeted.put(newcomer.getUUID(), now + cfg.greetCooldownSeconds * 20L);
 
 		int rep = v.getPlayerReputation(newcomer);
@@ -186,16 +228,26 @@ public final class Reactions {
 		say(v, topic, sound, Map.of("player", newcomer.getScoreboardName()));
 	}
 
-	private static void panic(Villager v, ServerLevel level, VillagerState state, boolean panicking, long now) {
+	private static final int MAX_PANIC_SHOUTS = 2;
+
+	private static final int MAX_RAID_SHOUTS = 4;
+
+	private static void panic(Villager v, ServerLevel level, VillagerState state, boolean panicking, boolean inRaid, long now) {
 		Brain<Villager> brain = v.getBrain();
 		if (panicking && !state.wasPanicking) {
 			state.panicEndedAt = -1;
+			state.panicStartedAt = now;
+			state.panicShouts = 0;
 			state.nextPanicShout = now + 60 + v.getRandom().nextInt(60);
 			level.broadcastEntityEvent(v, SWEAT);
 			Optional<LivingEntity> attacker = brain.getMemory(MemoryModuleType.HURT_BY_ENTITY);
 			Optional<LivingEntity> hostile = brain.getMemory(MemoryModuleType.NEAREST_HOSTILE);
 			if (attacker.isPresent() && attacker.get() instanceof Player) {
 				say(v, Topic.PANIC_HURT, SoundEvents.VILLAGER_HURT, Map.of());
+			} else if (inRaid) {
+				state.raidShouts++;
+				String threat = hostile.or(() -> attacker).map(e -> e.getType().getDescription().getString()).orElse("Raiders");
+				say(v, Topic.RAID_PANIC, SoundEvents.VILLAGER_NO, Map.of("threat", threat));
 			} else if (hostile.isPresent()) {
 				say(v, Topic.PANIC_HOSTILE, SoundEvents.VILLAGER_NO, Map.of("threat", hostile.get().getType().getDescription().getString()));
 			} else {
@@ -203,7 +255,19 @@ public final class Reactions {
 			}
 		} else if (panicking && now >= state.nextPanicShout) {
 			state.nextPanicShout = now + 60 + v.getRandom().nextInt(80);
-			if (v.getRandom().nextInt(3) == 0) {
+			// A couple of cries, then quiet: villagers in iron farms see a zombie all day long.
+			boolean longPanic = now - state.panicStartedAt > 400;
+			if (inRaid) {
+				// Raids get their own, slightly longer, allowance of cries.
+				if (state.raidShouts < MAX_RAID_SHOUTS && v.getRandom().nextInt(3) == 0) {
+					state.raidShouts++;
+					level.broadcastEntityEvent(v, SWEAT);
+					String threat = brain.getMemory(MemoryModuleType.NEAREST_HOSTILE)
+						.map(e -> e.getType().getDescription().getString()).orElse("Raiders");
+					say(v, Topic.RAID_PANIC, SoundEvents.VILLAGER_NO, Map.of("threat", threat));
+				}
+			} else if (state.panicShouts < MAX_PANIC_SHOUTS && !longPanic && v.getRandom().nextInt(3) == 0) {
+				state.panicShouts++;
 				level.broadcastEntityEvent(v, SWEAT);
 				say(v, Topic.PANIC_LOOP, SoundEvents.VILLAGER_NO, Map.of());
 			}
@@ -211,9 +275,117 @@ public final class Reactions {
 			state.panicEndedAt = now;
 		} else if (!panicking && state.panicEndedAt > 0 && now - state.panicEndedAt >= 60) {
 			state.panicEndedAt = -1;
+			if (inRaid) {
+				state.wasPanicking = panicking;
+				return;
+			}
 			say(v, Topic.CALM, SoundEvents.VILLAGER_AMBIENT, Map.of());
 		}
 		state.wasPanicking = panicking;
+	}
+
+	/**
+	 * Follows the raid around this villager: the first to notice it shouts a warning and sends the
+	 * neighbours into hiding (the same memory the village bell sets); afterwards they cheer or mourn.
+	 */
+	private static void raid(Villager v, ServerLevel level, VillagerState state) {
+		Raid raid = level.getRaidAt(v.blockPosition());
+		// isActive() only means "loaded"; a won or lost raid stays active while it winds down.
+		boolean ongoing = raid != null && raid.isActive() && !raid.isOver() && !raid.isStopped();
+		if (ongoing && state.raidId != raid.getId()) {
+			state.raidId = raid.getId();
+			state.raidShouts = 0;
+			state.raidHeroSaid = false;
+			float chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : 0.35F;
+			if (!v.isSleeping() && v.getRandom().nextFloat() < chance && takeRaidWarning(raid.getId(), level.getGameTime())) {
+				state.raidShouts++;
+				level.broadcastEntityEvent(v, SWEAT);
+				say(v, Topic.RAID_START, SoundEvents.VILLAGER_NO, Map.of());
+				if (LivelyConfig.get().raidAlarm) {
+					soundAlarm(v, level);
+				}
+			}
+		} else if (!ongoing && state.raidId != -1) {
+			if (raid != null && raid.getId() == state.raidId && !v.isSleeping()) {
+				Player hero = level.getNearestPlayer(v, 48.0);
+				Map<String, String> vars = Map.of("player", hero != null ? hero.getScoreboardName() : "hero");
+				float cheer = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : 0.6F;
+				if (raid.isVictory()) {
+					level.broadcastEntityEvent(v, HAPPY);
+					if (v.getRandom().nextFloat() < cheer) {
+						say(v, Topic.RAID_WON, SoundEvents.VILLAGER_CELEBRATE, vars);
+					}
+				} else if (raid.isLoss()) {
+					v.setUnhappyCounter(40);
+					say(v, Topic.RAID_LOST, SoundEvents.VILLAGER_NO, vars);
+				}
+			}
+			state.raidId = -1;
+		}
+	}
+
+	/** At most a few spoken warnings per raid, spaced out, so the whole village doesn't shout at once. */
+	private static final int MAX_RAID_WARNINGS = 4;
+	private static final Map<Integer, long[]> RAID_WARNINGS = new HashMap<>();
+
+	private static boolean takeRaidWarning(int raidId, long now) {
+		long[] w = RAID_WARNINGS.computeIfAbsent(raidId, k -> new long[] {0, 0});
+		if (w[1] >= MAX_RAID_WARNINGS || now < w[0]) {
+			return false;
+		}
+		w[0] = now + 30;
+		w[1]++;
+		return true;
+	}
+
+	/** Neighbours "hear the bell": vanilla villagers with this memory run indoors and hide. */
+	private static void soundAlarm(Villager caller, ServerLevel level) {
+		long now = level.getGameTime();
+		for (Villager other : level.getEntitiesOfClass(Villager.class, caller.getBoundingBox().inflate(16), o -> o != caller && o.isAlive())) {
+			other.getBrain().setMemory(MemoryModuleType.HEARD_BELL_TIME, now);
+		}
+		LivelyVillagers.trace("RAID_ALARM", caller, "neighbours warned");
+	}
+
+	/** During a raid, a villager near the player begs them for help (once per raid). */
+	private static void raidHero(Villager v, ServerLevel level, VillagerState state) {
+		if (state.raidHeroSaid || v.isTrading()) {
+			return;
+		}
+		Player player = level.getNearestPlayer(v.getX(), v.getY(), v.getZ(), 8.0, p -> !p.isSpectator() && v.hasLineOfSight(p));
+		if (player == null) {
+			return;
+		}
+		state.raidHeroSaid = true;
+		float chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : 0.5F;
+		long now = level.getGameTime();
+		Long quietUntil = PLAYER_GREETED_UNTIL.get(player.getUUID());
+		if (quietUntil != null && now < quietUntil) {
+			return;
+		}
+		if (v.getRandom().nextFloat() < chance) {
+			PLAYER_GREETED_UNTIL.put(player.getUUID(), now + 60);
+			lookAt(v, player);
+			say(v, Topic.RAID_HERO, SoundEvents.VILLAGER_YES, Map.of("player", player.getScoreboardName()));
+		}
+	}
+
+	/** Sometimes a dying villager gets some last words (the bubble stays where they fell). */
+	public static void onDeath(Villager v, DamageSource source) {
+		if (!(v.level() instanceof ServerLevel level)) {
+			return;
+		}
+		double chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : LivelyConfig.get().deathLineChance;
+		if (v.getRandom().nextDouble() >= chance) {
+			return;
+		}
+		Entity killer = source.getEntity();
+		Player near = level.getNearestPlayer(v, 32.0);
+		Map<String, String> vars = new HashMap<>();
+		vars.put("player", killer instanceof Player p ? p.getScoreboardName() : near != null ? near.getScoreboardName() : "hero");
+		Topic topic = killer instanceof Player ? Topic.DEATH_BY_PLAYER
+			: killer instanceof net.minecraft.world.entity.raid.Raider ? Topic.DEATH_BY_RAIDER : Topic.DEATH;
+		say(v, topic, null, vars);
 	}
 
 	/** Lit TNT and hissing creepers aren't something the vanilla brain fears; run from them. */
@@ -254,7 +426,7 @@ public final class Reactions {
 		for (Villager v : villagers) {
 			VillagerState state = LivelyVillagers.state(v);
 			Feeling feeling = feel(v, placed);
-			boolean tooClose = v.distanceToSqr(center) <= 1.6 * 1.6;
+			boolean tooClose = v.distanceToSqr(center) <= 1.6 * 1.6 && !isBoxedIn(v, level);
 			if (feeling == Feeling.NEUTRAL && !tooClose && LivelyVillagers.mind(v).personality() != Personality.CURIOUS) {
 				continue;
 			}
@@ -369,6 +541,18 @@ public final class Reactions {
 
 	// ---------------------------------------------------------------- gifts
 
+	/** Ticks a villager ignores further gifts after taking one. */
+	private static final int GIFT_COOLDOWN = 60;
+
+	/** Gifts only count when a player threw them; dropped flowers from farms are left alone. */
+	public static boolean isPlayerGift(ItemEntity item) {
+		return isGift(item.getItem()) && item.getOwner() instanceof Player;
+	}
+
+	public static boolean acceptsGiftNow(Villager v) {
+		return !v.isSleeping() && v.level().getGameTime() >= LivelyVillagers.state(v).nextGiftAt;
+	}
+
 	public static boolean isGift(ItemStack stack) {
 		return isLovedGift(stack) || (stack.is(ItemTags.FLOWERS) && !stack.is(Items.WITHER_ROSE))
 			|| stack.is(Items.COOKIE) || stack.is(Items.SWEET_BERRIES) || stack.is(Items.GLOW_BERRIES);
@@ -386,6 +570,7 @@ public final class Reactions {
 		ItemStack stack = itemEntity.getItem();
 		Item item = stack.getItem();
 		boolean loved = isLovedGift(stack);
+		LivelyVillagers.state(v).nextGiftAt = level.getGameTime() + GIFT_COOLDOWN;
 		v.take(itemEntity, 1);
 		stack.shrink(1);
 		if (stack.isEmpty()) {
@@ -480,7 +665,15 @@ public final class Reactions {
 	/** Dev film only: the next line spoken, instead of a random pick. */
 	public static String nextLineOverride;
 
+	/** How far away a player can be and still hear villagers talk. */
+	private static final double HEARING_RANGE = 32.0;
+
 	public static void say(Villager v, Topic topic, SoundEvent sound, Map<String, String> vars) {
+		// Farms in spawn chunks or chunk-loaded bases would otherwise churn bubbles and sounds all day.
+		if (!(v.level() instanceof ServerLevel level) || !anyoneListening(level, v)) {
+			nextLineOverride = null;
+			return;
+		}
 		VillagerMind mind = LivelyVillagers.mind(v);
 		String picked = nextLineOverride != null ? nextLineOverride : Lines.pick(topic, mind.personality(), v.getRandom());
 		nextLineOverride = null;
@@ -498,6 +691,10 @@ public final class Reactions {
 			SpeechBubbles.show(v, line);
 		}
 		LivelyVillagers.trace(topic.name(), v, line);
+	}
+
+	private static boolean anyoneListening(ServerLevel level, Villager v) {
+		return level.getNearestPlayer(v.getX(), v.getY(), v.getZ(), HEARING_RANGE, p -> !p.isSpectator()) != null;
 	}
 
 	public static String displayName(Villager v) {

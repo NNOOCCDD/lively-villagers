@@ -28,6 +28,12 @@ public class LivelyConfig {
 	/** Villagers also flee creepers, skeletons, spiders, witches and similar, and run from lit TNT. */
 	public boolean extraDangers = true;
 	public boolean dangerShouts = true;
+	/** Raid warnings, raid panic lines, pleas to the player and the victory/defeat reaction. */
+	public boolean raidLines = true;
+	/** Villagers warn neighbours when they spot a raid, sending them to hide like the village bell does. */
+	public boolean raidAlarm = true;
+	/** Chance a dying villager says some last words. */
+	public double deathLineChance = 0.5;
 
 	/** Bumped when a default changes, so untouched old values can be migrated. */
 	public int configVersion = 2;

@@ -5,6 +5,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -57,6 +58,12 @@ public class LivelyVillagers implements ModInitializer {
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> SpeechBubbles.onEntityLoad(entity));
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> SpeechBubbles.clearAll());
 
+		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			if (entity instanceof Villager v && LivelyConfig.get().deathLineChance > 0) {
+				Reactions.onDeath(v, source);
+			}
+		});
+
 		PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, blockEntity) -> {
 			if (level instanceof ServerLevel serverLevel) {
 				Reactions.onBlockBroken(serverLevel, player, pos, state);
@@ -88,6 +95,13 @@ public class LivelyVillagers implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
 			Commands.literal("lively")
 				.then(Commands.literal("info").executes(ctx -> info(ctx.getSource())))
+				.then(Commands.literal("reload")
+					.requires(src -> src.hasPermission(2))
+					.executes(ctx -> {
+						LivelyConfig.load();
+						ctx.getSource().sendSuccess(() -> Component.literal("Lively Villagers config reloaded."), true);
+						return 1;
+					}))
 				.then(Commands.literal("personality")
 					.requires(src -> src.hasPermission(2))
 					.then(Commands.argument("personality", StringArgumentType.word())
@@ -95,12 +109,17 @@ public class LivelyVillagers implements ModInitializer {
 							Arrays.stream(Personality.values()).map(Personality::getSerializedName), builder))
 						.executes(ctx -> setPersonality(ctx.getSource(), StringArgumentType.getString(ctx, "personality")))))));
 
-		if (Boolean.getBoolean("livelyvillagers.selftest")) {
-			SelfTest.install();
-		} else if (Boolean.getBoolean("livelyvillagers.showcase")) {
-			Showcase.install();
-		} else if (Boolean.getBoolean("livelyvillagers.film")) {
-			Film.install();
+		// Dev-only tools (self-test, showcase stills, film recorder) are left out of release jars, so
+		// they are only ever reached by name, when their flag is set.
+		for (String tool : new String[] {"selftest:SelfTest", "showcase:Showcase", "film:Film", "raidtest:RaidTest"}) {
+			String[] parts = tool.split(":");
+			if (Boolean.getBoolean("livelyvillagers." + parts[0])) {
+				try {
+					Class.forName("com.livelyvillagers." + parts[1]).getDeclaredMethod("install").invoke(null);
+				} catch (ReflectiveOperationException e) {
+					LOGGER.error("Dev tool {} is not available in this build", parts[1], e);
+				}
+			}
 		}
 		LOGGER.info("Lively Villagers loaded");
 	}

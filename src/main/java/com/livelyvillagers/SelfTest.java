@@ -56,7 +56,7 @@ public final class SelfTest {
 	private static long startTick = -1;
 	private static int reputationBefore;
 
-	static void install() {
+	public static void install() {
 		LivelyVillagers.forcedChance = 1.0F;
 		LivelyVillagers.traceListener = (event, v) -> {
 			if (v == villager) {
@@ -103,7 +103,7 @@ public final class SelfTest {
 			// Place a flower next to the pen -> liked block.
 			case 140 -> {
 				events.clear();
-				place(level, Items.POPPY, base.offset(2, 0, -1));
+				place(level, Items.POPPY, base.offset(3, 0, -1));
 			}
 			case 160 -> {
 				expect("flower placed", "LIKE_BLOCK", "CURIOUS_BLOCK");
@@ -112,17 +112,17 @@ public final class SelfTest {
 			// Place TNT -> scared.
 			case 240 -> {
 				events.clear();
-				place(level, Items.TNT, base.offset(-2, 0, -1));
+				place(level, Items.TNT, base.offset(-3, 0, -1));
 			}
 			case 260 -> {
 				expect("tnt placed", "SCARY_BLOCK");
 				screenshot.accept("3-scared-of-tnt");
-				level.setBlockAndUpdate(base.offset(-2, 0, -1), Blocks.AIR.defaultBlockState());
+				level.setBlockAndUpdate(base.offset(-3, 0, -1), Blocks.AIR.defaultBlockState());
 			}
 			// Place the farmer's job site -> loves it.
 			case 340 -> {
 				events.clear();
-				place(level, Items.COMPOSTER, base.offset(2, 0, 1));
+				place(level, Items.COMPOSTER, base.offset(3, 0, 1));
 			}
 			case 360 -> {
 				expect("composter placed", "LOVE_JOB_SITE");
@@ -178,7 +178,7 @@ public final class SelfTest {
 				events.clear();
 				boolean claimed = villager.getBrain().getMemory(MemoryModuleType.JOB_SITE).isPresent();
 				LivelyVillagers.LOGGER.info("SELFTEST job site claimed: {}", claimed);
-				player.gameMode.destroyBlock(base.offset(2, 0, 1));
+				player.gameMode.destroyBlock(base.offset(3, 0, 1));
 				if (!claimed) {
 					events.add("BROKE_JOB_SITE(skipped: not claimed)");
 				}
@@ -194,7 +194,7 @@ public final class SelfTest {
 			// Right-click a working villager -> business line (fired twice, like the two interact packets).
 			case 1120 -> {
 				events.clear();
-				face(level, base.offset(0, 0, -2));
+				face(level, base.offset(0, 0, -3));
 				rightClick(level);
 				rightClick(level);
 			}
@@ -238,11 +238,92 @@ public final class SelfTest {
 				screenshot.accept("12-night-click");
 			}
 			// Realistic walk-by: 8 penned villagers with random personalities, real odds, walking speed.
-			case 1620 -> setupWalk(level);
+			// --- 1.0.1: a thrown stack is taken one at a time, not eaten in seconds.
+			case 1600 -> {
+				level.setDayTime(6000);
+				events.clear();
+				LivelyVillagers.state(villager).nextGiftAt = 0;
+				throwGift(level, Items.POPPY, 5);
+			}
+			case 1660 -> {
+				long gifts = events.stream().filter(e -> e.startsWith("GIFT")).count();
+				int left = countItems(level, Items.POPPY);
+				check("stack gift: one taken (" + gifts + " gift lines, " + left + "/5 left on the ground)", gifts == 1 && left == 4);
+				clearItems(level);
+				events.clear();
+			}
+			// --- 1.0.1: flowers nobody threw stay on the ground.
+			case 1680 -> {
+				LivelyVillagers.state(villager).nextGiftAt = 0;
+				ItemEntity loose = new ItemEntity(level, villager.getX() + 0.3, villager.getY() + 0.5, villager.getZ() + 0.3, new ItemStack(Items.DANDELION));
+				loose.setNoPickUpDelay();
+				level.addFreshEntity(loose);
+			}
+			case 1760 -> {
+				check("unthrown flower left alone", countItems(level, Items.DANDELION) == 1
+					&& events.stream().noneMatch(e -> e.startsWith("GIFT") || e.startsWith("FOUND")));
+				clearItems(level);
+			}
+			// --- 1.0.1: a daytime thunderstorm is not bedtime.
+			case 1780 -> {
+				level.setWeatherParameters(0, 6000, true, true);
+			}
+			case 1790 -> {
+				check("thunderstorm at noon is not sleepy time", !Reactions.isSleepyTime(villager));
+				level.setWeatherParameters(6000, 0, false, false);
+				// --- 1.0.1: /lively reload
+				int ok;
+				try {
+					ok = server.getCommands().getDispatcher().execute("lively reload", server.createCommandSourceStack());
+				} catch (com.mojang.brigadier.exceptions.CommandSyntaxException e) {
+					ok = -1;
+				}
+				check("/lively reload", ok == 1);
+				// --- 1.0.1: trading-hall cells are recognised.
+				Villager boxed = EntityType.VILLAGER.spawn(level, base.offset(9, 0, 0), MobSpawnType.COMMAND);
+				ring(level, base.offset(9, 0, 0), 1);
+				check("1x1 cell villager is boxed in, pen villager is not", Reactions.isBoxedIn(boxed, level) && !Reactions.isBoxedIn(villager, level));
+				boxed.discard();
+			}
+			// --- 1.0.1: nobody around, nothing said (the villager still panics).
+			case 1810 -> {
+				face(level, base.offset(0, 0, -70));
+				events.clear();
+				creeper = EntityType.CREEPER.spawn(level, base.offset(4, 0, 2), MobSpawnType.COMMAND);
+				if (creeper != null) {
+					creeper.setNoAi(true);
+				}
+			}
+			case 1900 -> {
+				check("panics silently with no player within 32 blocks (" + events + ")",
+					villager.getBrain().isActive(Activity.PANIC) && events.isEmpty());
+				face(level, base.offset(0, 0, -3));
+				events.clear();
+			}
+			// --- 1.0.1: a long panic (iron farm) cries out at most twice.
+			case 2310 -> {
+				long loops = events.stream().filter(e -> e.equals("PANIC_LOOP")).count();
+				check("long panic capped (" + loops + " loop shouts in 20 s)", loops <= 2);
+				if (creeper != null) {
+					creeper.discard();
+				}
+				events.clear();
+			}
+			// --- 1.0.1: last words, left hanging where the villager fell.
+			case 2330 -> {
+				villager.hurt(level.damageSources().playerAttack(player), 1000.0F);
+			}
+			case 2370 -> {
+				expect("last words when killed by a player", "DEATH_BY_PLAYER");
+				long bubbles = level.getEntitiesOfClass(net.minecraft.world.entity.Display.TextDisplay.class,
+					new AABB(base).inflate(4), d -> d.getTags().contains(SpeechBubbles.TAG)).size();
+				check("last-words bubble outlives the villager (" + bubbles + ")", villager.isRemoved() && bubbles >= 1);
+			}
+			case 2400 -> setupWalk(level);
 			default -> {
-				if (t > 1640 && t <= 1640 + WALK_TICKS) {
-					walkStep(level, t - 1640);
-				} else if (t == 1640 + WALK_TICKS + 20) {
+				if (t > 2420 && t <= 2420 + WALK_TICKS) {
+					walkStep(level, t - 2420);
+				} else if (t == 2420 + WALK_TICKS + 20) {
 					long greeted = walkers.stream().filter(greetedWalkers::contains).count();
 					results.add("INFO walk-by: " + greeted + "/" + walkers.size() + " villagers said hi " + walkLog);
 					finish();
@@ -263,13 +344,7 @@ public final class SelfTest {
 		walkStart = base.offset(-8, 0, 20);
 		for (int i = 0; i < 8; i++) {
 			BlockPos pos = walkStart.offset(4 + i * 5, 0, (i % 2 == 0) ? 5 : -5);
-			for (int dx = -1; dx <= 1; dx++) {
-				for (int dz = -1; dz <= 1; dz++) {
-					if (dx != 0 || dz != 0) {
-						level.setBlockAndUpdate(pos.offset(dx, 0, dz), Blocks.OAK_FENCE.defaultBlockState());
-					}
-				}
-			}
+			ring(level, pos, 2);
 			Villager w = EntityType.VILLAGER.spawn(level, pos, MobSpawnType.COMMAND);
 			walkers.add(w);
 			walkLog.add(LivelyVillagers.mind(w).personality().getSerializedName());
@@ -288,6 +363,16 @@ public final class SelfTest {
 		player.teleportTo(level, x, walkStart.getY(), walkStart.getZ() + 0.5, -90.0F, 10.0F);
 	}
 
+	private static void ring(ServerLevel level, BlockPos center, int r) {
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
+				if (Math.max(Math.abs(dx), Math.abs(dz)) == r) {
+					level.setBlockAndUpdate(center.offset(dx, 0, dz), Blocks.OAK_FENCE.defaultBlockState());
+				}
+			}
+		}
+	}
+
 	private static void setup(ServerLevel level, MinecraftServer server) {
 		GameRules rules = level.getGameRules();
 		rules.getRule(GameRules.RULE_DAYLIGHT).set(false, server);
@@ -302,13 +387,8 @@ public final class SelfTest {
 			e.discard();
 		}
 		// A 1x1 fence pen so the villager stays put; its eyes are above the fence, so it still sees the player.
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dz = -1; dz <= 1; dz++) {
-				if (dx != 0 || dz != 0) {
-					level.setBlockAndUpdate(base.offset(dx, 0, dz), Blocks.OAK_FENCE.defaultBlockState());
-				}
-			}
-		}
+		// A 3x3 fence pen: the villager stays close but isn't boxed in like a trading-hall cell.
+		ring(level, base, 2);
 		villager = EntityType.VILLAGER.spawn(level, base, MobSpawnType.COMMAND);
 		villager.setVillagerData(villager.getVillagerData().setProfession(VillagerProfession.FARMER));
 		// Vanilla drops the profession of a level-1, 0 XP villager with no job site; keep this one a farmer.
@@ -342,7 +422,20 @@ public final class SelfTest {
 	}
 
 	private static void throwGift(ServerLevel level, Item item) {
-		ItemEntity gift = new ItemEntity(level, villager.getX() + 0.3, villager.getY() + 0.5, villager.getZ() + 0.3, new ItemStack(item));
+		throwGift(level, item, 1);
+	}
+
+	private static int countItems(ServerLevel level, Item item) {
+		return level.getEntitiesOfClass(ItemEntity.class, new AABB(base).inflate(4), i -> i.getItem().is(item))
+			.stream().mapToInt(i -> i.getItem().getCount()).sum();
+	}
+
+	private static void clearItems(ServerLevel level) {
+		level.getEntitiesOfClass(ItemEntity.class, new AABB(base).inflate(6)).forEach(Entity::discard);
+	}
+
+	private static void throwGift(ServerLevel level, Item item, int count) {
+		ItemEntity gift = new ItemEntity(level, villager.getX() + 0.3, villager.getY() + 0.5, villager.getZ() + 0.3, new ItemStack(item, count));
 		gift.setDeltaMovement(Vec3.ZERO);
 		gift.setThrower(player);
 		gift.setNoPickUpDelay();

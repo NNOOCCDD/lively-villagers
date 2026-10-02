@@ -28,6 +28,9 @@ loom {
 				}
 				programArgs "--width", "1920", "--height", "1080", "--username", "Steve"
 			}
+			if (project.hasProperty("raidtest")) {
+				vmArg "-Dlivelyvillagers.raidtest=true"
+			}
 			if (project.hasProperty("showcase")) {
 				vmArg "-Dlivelyvillagers.showcase=true"
 				programArgs "--width", "1920", "--height", "1080"
@@ -84,6 +87,15 @@ java {
 jar {
 	def projectName = project.name
 	inputs.property "projectName", projectName
+
+	// Release jars leave out the dev-only tools (self-test, showcase stills, film recorder and its
+	// client mixins); dev runs use the class folders and keep them. The lines that register them in
+	// fabric.mod.json start with a comma so they can be dropped without breaking the JSON.
+	exclude "com/livelyvillagers/SelfTest*", "com/livelyvillagers/Showcase*", "com/livelyvillagers/Film*",
+		"com/livelyvillagers/RaidTest*", "com/livelyvillagers/client/**", "livelyvillagers.client.mixins.json"
+	filesMatching("fabric.mod.json") {
+		filter { line -> (line.contains("SelfTestClient") || line.contains("livelyvillagers.client.mixins.json")) ? null : line }
+	}
 
 	from("LICENSE") {
 		rename { "${it}_$projectName"}

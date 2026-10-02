@@ -33,3 +33,10 @@ Loader API + Mixin. Everything is server-side using vanilla packets (text_displa
 7. Snow layers and short grass are not air; use `canBeReplaced()` when checking open ground, or every snowy street gets rejected (and the picker falls back to frozen ponds).
 8. Real villagers wander into the foreground; discard non-actor mobs on the camera side before each shot.
 9. Locating a snowy village from a far-away desert took ~8 min of server-thread time; give runs a long timeout.
+
+## 1.0.1 notes
+10. During raids vanilla puts villagers in RAID/HIDE activities, never PANIC; "a raider in NEAREST_HOSTILE" is the raid-panic signal.
+11. Raid.isActive() only means "loaded" and stays true after VICTORY/LOSS; ongoing = isActive && !isOver && !isStopped.
+12. HEARD_BELL_TIME is the memory the bell sets; setting it on neighbours sends them to hide (the raid alarm).
+13. Raids.createOrExtendRaid needs occupied village POIs; the flat test world has none, so raid tests run in the real showcase village (-Praidtest).
+14. Release jar: dev tools are excluded in the jar task and their fabric.mod.json lines (comma-first) filtered out; LivelyVillagers loads dev tools by reflection. Verified on a real dedicated Fabric server.

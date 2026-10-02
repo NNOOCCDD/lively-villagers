@@ -4,6 +4,7 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"BlockItemMixin",
+		"NearestItemSensorMixin",
 		"VillagerHostilesSensorMixin",
 		"VillagerMixin"
 	],

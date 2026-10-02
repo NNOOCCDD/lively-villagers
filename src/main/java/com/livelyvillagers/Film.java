@@ -49,7 +49,7 @@ public final class Film {
 	private static final List<Entity> cast = new ArrayList<>();
 	private static int wait = -1;
 
-	static void install() {
+	public static void install() {
 		LivelyVillagers.forcedChance = 1.0F;
 		SpeechBubbles.scaleBoost = 1.35F;
 		FilmState.active = true;

@@ -9,12 +9,12 @@
 	"icon": "assets/livelyvillagers/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["com.livelyvillagers.LivelyVillagers"],
-		"client": ["com.livelyvillagers.client.SelfTestClient"]
+		"main": ["com.livelyvillagers.LivelyVillagers"]
+		,"client": ["com.livelyvillagers.client.SelfTestClient"]
 	},
 	"mixins": [
-		"livelyvillagers.mixins.json",
-		{"config": "livelyvillagers.client.mixins.json", "environment": "client"}
+		"livelyvillagers.mixins.json"
+		,{"config": "livelyvillagers.client.mixins.json", "environment": "client"}
 	],
 	"depends": {
 		"fabricloader": ">=0.16.0",

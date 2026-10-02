@@ -15,6 +15,9 @@ No new blocks, items or textures: just villagers that feel like they live there.
 - **Danger:** villagers also fear creepers, skeletons, spiders, witches and more, shout when they panic, run
   from lit TNT and hissing creepers, and calm down afterwards.
 - **Right-click:** villagers without a job (and nitwits) grumble ("Hey...", "Stop touching me!"); working villagers greet you with a shop line before trading opens.
+- **Raids:** the first villager to spot a raid shouts a warning and sends the neighbours to hide. Villagers
+  cower with raid lines, beg you for help, then cheer if you win (or mourn if you lose).
+- **Last words:** sometimes a dying villager says something on the way out; the bubble stays where they fell.
 - **Night:** after dark villagers get sleepy: yawning greetings, "Time to turn in for the night." when they head to bed, tired shop lines, and sleep-talk if you poke them while they sleep.
 - **Introductions:** sneak and right-click a villager with an empty hand to have them introduce themselves.
 
@@ -27,6 +30,7 @@ It's server-side: on a server, only the server needs it; players can join with a
 ## Commands
 - `/lively info`: name, personality and your reputation for the villager you're looking at.
 - `/lively personality <cheerful|curious|shy|grumpy>` (operators): change a villager's personality.
+- `/lively reload` (operators): reload the config file.
 
 Name tags rename a villager in their speech too.
 
@@ -45,5 +49,6 @@ Gradle needs JDK 25 (Loom 1.18); the mod targets Java 21.
 ```
 JAVA_HOME=/path/to/jdk-25 ./gradlew build              # jar in build/libs
 JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Pselftest  # scripted in-game test + screenshots in run/screenshots
+JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Praidtest   # a real raid on a real village, checks the raid lines
 JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Pshowcase   # staged hero screenshots in real villages (1920x1080)
 ```

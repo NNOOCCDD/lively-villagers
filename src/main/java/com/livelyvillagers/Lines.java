@@ -14,7 +14,9 @@ public final class Lines {
 		GIFT_LIKE, GIFT_LOVE, GIFT_AGAIN, FOUND_GIFT,
 		PANIC_HOSTILE, PANIC_HURT, PANIC_TNT, PANIC_LOOP, CALM,
 		CLICK_JOBLESS, CLICK_WORKER, CLICK_BABY,
-		BEDTIME, CLICK_JOBLESS_NIGHT, CLICK_WORKER_NIGHT, SLEEP_TALK
+		BEDTIME, CLICK_JOBLESS_NIGHT, CLICK_WORKER_NIGHT, SLEEP_TALK,
+		RAID_START, RAID_PANIC, RAID_HERO, RAID_WON, RAID_LOST,
+		DEATH, DEATH_BY_PLAYER, DEATH_BY_RAIDER
 	}
 
 	private static final Map<Topic, String[]> DEFAULT = new EnumMap<>(Topic.class);
@@ -67,6 +69,28 @@ public final class Lines {
 		put(Topic.CLICK_WORKER_NIGHT, "*yawn* Shop's nearly closed...", "Make it quick, I'm sleepy.", "Late customer, eh? Fine, fine.",
 			"I'm so tired... what do you need?");
 		put(Topic.SLEEP_TALK, "Zzz...", "*snore*", "Five more minutes...", "Mmh... emeralds...", "Zzz... no... my crops...");
+
+		put(Topic.RAID_START, "Raiders! Everyone inside!", "Pillagers are coming!", "Ring the bell! RING THE BELL!",
+			"Lock the doors!", "Not again!", "Hide the emeralds!");
+		put(Topic.RAID_PANIC, "They're at the door!", "Hide! HIDE!", "Where's the iron golem when you need it?!",
+			"Save the emeralds!", "{threat}! Get away from me!", "Help! Somebody!", "Not my crops!");
+		put(Topic.RAID_HERO, "{player}! Please, save us!", "A hero! Thank goodness you're here!", "{player}, they went that way!",
+			"Don't let them take the village, {player}!");
+		put(Topic.RAID_WON, "We did it! We're saved!", "Hooray for {player}!", "Three cheers for the hero!",
+			"Phew... is everyone okay?", "They're gone! They're really gone!");
+		put(Topic.RAID_LOST, "Our poor village...", "They took everything...", "Is anyone left?", "We'll rebuild... somehow.");
+		put(Topic.DEATH, "Tell my family... I loved them...", "Not like this...", "Hrrmm... goodbye...",
+			"My emeralds... take care of them...", "Avenge me!", "I never finished my trades...");
+		put(Topic.DEATH_BY_PLAYER, "Why... {player}?", "I thought we were friends...", "I'll remember this... oh wait.");
+		put(Topic.DEATH_BY_RAIDER, "Curse you... pillagers...", "Protect... the village...", "Avenge me, {player}!");
+
+		put(Personality.CHEERFUL, Topic.DEATH, "It was a good life!", "Tell everyone... I said hi!");
+		put(Personality.GRUMPY, Topic.DEATH, "Typical.", "Hmph. Figures.", "Of course this happens to ME.");
+		put(Personality.SHY, Topic.DEATH, "...bye.", "Oh... oh no...");
+		put(Personality.CURIOUS, Topic.DEATH, "So THIS is what's next...", "Ooh, a bright light!");
+		put(Personality.GRUMPY, Topic.RAID_START, "Raiders. Of course. Today of all days.", "Hrmph! Everyone inside!");
+		put(Personality.SHY, Topic.RAID_PANIC, "*hides under the bed*", "Eep! Eep! Eep!");
+		put(Personality.CHEERFUL, Topic.RAID_WON, "Party at the bell! Everyone's invited!", "You're amazing, {player}!");
 
 		put(Personality.CHEERFUL, Topic.GREET_NIGHT, "Goodnight, {player}! Sweet dreams!", "*yawn* What a lovely day it was!");
 		put(Personality.CHEERFUL, Topic.BEDTIME, "Nighty night, everyone!", "Can't wait for tomorrow! *yawn*");

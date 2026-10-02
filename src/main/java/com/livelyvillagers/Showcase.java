@@ -65,7 +65,7 @@ public final class Showcase {
 	static BlockPos stage;
 	static Vec3 look;
 
-	static void install() {
+	public static void install() {
 		SpeechBubbles.scaleBoost = 1.25F;
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			player = handler.getPlayer();

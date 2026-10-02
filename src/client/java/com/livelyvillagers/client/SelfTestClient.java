@@ -29,7 +29,8 @@ public class SelfTestClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		film = Boolean.getBoolean("livelyvillagers.film");
 		// Film mode needs the same real-terrain world as the showcase.
-		showcase = Boolean.getBoolean("livelyvillagers.showcase") || film;
+		// Film and raid-test modes need the same real-terrain world (villages) as the showcase.
+		showcase = Boolean.getBoolean("livelyvillagers.showcase") || film || Boolean.getBoolean("livelyvillagers.raidtest");
 		if (!Boolean.getBoolean("livelyvillagers.selftest") && !showcase) {
 			return;
 		}

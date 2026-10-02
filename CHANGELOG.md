@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.1 (Minecraft 1.21.1, Fabric)
+
+### New: raids
+- **Raid alarm:** the first villager to spot a raid shouts a warning (*"Ring the bell! RING THE BELL!"*) and sends nearby villagers running to hide, just like the village bell does.
+- **Raid panic lines:** villagers cower with raid-specific lines (*"They're at the door!"*, *"\*hides under the bed\*"*, *"Not my crops!"*).
+- **Pleas for help:** villagers near you during a raid beg you to save them (*"Steve! Please, save us!"*).
+- **Victory and defeat:** win the raid and the village cheers (*"Three cheers for the hero!"*); lose it and they mourn (*"Our poor village..."*).
+
+### New: last words
+- Sometimes a dying villager says some last words, and the bubble stays where they fell. Killed by a player: *"Why... Steve?"* By a raider: *"Curse you... pillagers..."* Otherwise anything from *"Avenge me!"* to the grumpy *"Typical."*
+
+### Fixes
+- **Gifts:** a villager takes one gift at a time. Throwing a stack no longer has the whole stack eaten in seconds.
+- **Gifts:** only items a player threw count. Flowers from flower farms and item collectors are left alone, and villagers no longer walk over to them.
+- **Iron farms:** a villager stuck in a long panic (like the zombie in an iron farm) cries out a couple of times and then stays quiet.
+- **Performance:** villagers only talk when a player is within 32 blocks, so farms in spawn chunks or chunk-loaded bases don't create speech bubbles all day.
+- **Trading halls:** villagers boxed into a 1x1 cell don't greet you or complain about blocks placed next to them, and one player gets at most one greeting every 1.5 seconds.
+- **Weather:** a daytime thunderstorm no longer makes villagers yawn and say goodnight.
+- **Greetings:** invisible and sneaking players are not greeted.
+- **Release jar:** development and recording tools are no longer included.
+
+### New: commands and config
+- `/lively reload` (operators) reloads `config/lively-villagers.json` without restarting.
+- New options: `raidLines`, `raidAlarm`, `deathLineChance`.
+
 ## 1.0.0 (Minecraft 1.21.1, Fabric)
 
 First release. Every villager gets a name, a personality and something to say.
