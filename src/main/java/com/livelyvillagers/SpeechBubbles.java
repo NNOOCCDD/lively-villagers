@@ -47,6 +47,11 @@ public final class SpeechBubbles {
 		// Vanilla decodes "alignment" even when absent and logs an error, so always set it.
 		tag.putString("alignment", "center");
 		tag.putInt("background", BACKGROUND);
+		// Full-bright so bubbles stay readable at night and indoors.
+		CompoundTag brightness = new CompoundTag();
+		brightness.putInt("sky", 15);
+		brightness.putInt("block", 15);
+		tag.put("brightness", brightness);
 		tag.putInt("line_width", 150);
 		tag.putInt("teleport_duration", 2);
 		tag.putFloat("view_range", 0.5F);

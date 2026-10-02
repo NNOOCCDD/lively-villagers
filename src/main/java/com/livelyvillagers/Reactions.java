@@ -96,6 +96,33 @@ public final class Reactions {
 		if (cfg.greetings && !panicking && !v.isSleeping() && !v.isTrading()) {
 			greet(v, level, state, now);
 		}
+		if (cfg.greetings) {
+			bedtime(v, level, state, panicking, now);
+		}
+	}
+
+	/** Night, or the villager's schedule says it's time to rest. */
+	public static boolean isSleepyTime(Villager v) {
+		return v.level().isNight() || v.getBrain().isActive(Activity.REST);
+	}
+
+	/** When the schedule switches to rest, some villagers announce it (only if someone is around to hear). */
+	private static void bedtime(Villager v, ServerLevel level, VillagerState state, boolean panicking, long now) {
+		boolean resting = v.getBrain().isActive(Activity.REST);
+		if (resting && !state.wasResting) {
+			float chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : 0.4F;
+			// Everyone switches on the same tick; spread the mumbling over the next ~10 seconds.
+			state.bedtimeLineAt = v.getRandom().nextFloat() < chance ? now + 20 + v.getRandom().nextInt(180) : -1;
+		}
+		state.wasResting = resting;
+		if (state.bedtimeLineAt < 0 || now < state.bedtimeLineAt) {
+			return;
+		}
+		state.bedtimeLineAt = -1;
+		if (resting && !panicking && !v.isSleeping() && !v.isTrading()
+			&& level.getNearestPlayer(v, 16.0) != null) {
+			say(v, Topic.BEDTIME, SoundEvents.VILLAGER_AMBIENT, Map.of());
+		}
 	}
 
 	private static void greet(Villager v, ServerLevel level, VillagerState state, long now) {
@@ -121,7 +148,7 @@ public final class Reactions {
 		}
 		state.lastGreeted.put(newcomer.getUUID(), now);
 		VillagerMind mind = LivelyVillagers.mind(v);
-		float chance = LivelyVillagers.forcedGreetChance >= 0 ? LivelyVillagers.forcedGreetChance : mind.personality().greetChance;
+		float chance = LivelyVillagers.forcedChance >= 0 ? LivelyVillagers.forcedChance : mind.personality().greetChance;
 		if (v.getRandom().nextFloat() >= chance) {
 			LivelyVillagers.trace("greet-skip", v, newcomer.getScoreboardName());
 			return;
@@ -136,12 +163,15 @@ public final class Reactions {
 			topic = Topic.GREET_COLD;
 			sound = SoundEvents.VILLAGER_NO;
 			v.setUnhappyCounter(40);
+		} else if (isSleepyTime(v)) {
+			topic = Topic.GREET_NIGHT;
+			if (rep >= 25) {
+				level.broadcastEntityEvent(v, HAPPY);
+			}
 		} else if (rep >= 25) {
 			topic = Topic.GREET_WARM;
 			sound = SoundEvents.VILLAGER_YES;
 			level.broadcastEntityEvent(v, HAPPY);
-		} else if (level.isNight() && v.getRandom().nextBoolean()) {
-			topic = Topic.GREET_NIGHT;
 		} else if (level.isRainingAt(v.blockPosition()) && v.getRandom().nextInt(3) == 0) {
 			topic = Topic.GREET_RAIN;
 		} else {
@@ -405,11 +435,18 @@ public final class Reactions {
 		if (v.isBaby()) {
 			say(v, Topic.CLICK_BABY, null, vars);
 		} else if (job == VillagerProfession.NONE || job == VillagerProfession.NITWIT) {
-			say(v, Topic.CLICK_JOBLESS, null, vars);
+			say(v, isSleepyTime(v) ? Topic.CLICK_JOBLESS_NIGHT : Topic.CLICK_JOBLESS, null, vars);
 		} else if (v.getPlayerReputation(player) <= -10) {
 			say(v, Topic.GREET_COLD, SoundEvents.VILLAGER_NO, vars);
 		} else {
-			say(v, Topic.CLICK_WORKER, SoundEvents.VILLAGER_TRADE, vars);
+			say(v, isSleepyTime(v) ? Topic.CLICK_WORKER_NIGHT : Topic.CLICK_WORKER, SoundEvents.VILLAGER_TRADE, vars);
+		}
+	}
+
+	/** Right-clicking a sleeping villager: they mumble in their sleep (and stay asleep). */
+	public static void onClickedSleeping(Villager v) {
+		if (clickCooldownOver(v)) {
+			say(v, Topic.SLEEP_TALK, null, Map.of());
 		}
 	}
 

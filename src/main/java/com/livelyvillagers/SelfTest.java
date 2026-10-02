@@ -57,7 +57,7 @@ public final class SelfTest {
 	private static int reputationBefore;
 
 	static void install() {
-		LivelyVillagers.forcedGreetChance = 1.0F;
+		LivelyVillagers.forcedChance = 1.0F;
 		LivelyVillagers.traceListener = (event, v) -> {
 			if (v == villager) {
 				events.add(event);
@@ -213,7 +213,31 @@ public final class SelfTest {
 				expect("right-click jobless", "CLICK_JOBLESS");
 				screenshot.accept("10-click-jobless");
 			}
-			case 1260 -> finish();
+			// Night falls: bedtime mumble, sleepy greeting, sleepy right-click.
+			case 1260 -> {
+				events.clear();
+				face(level, base.offset(0, 0, -12));
+				level.setDayTime(13000);
+			}
+			case 1480 -> {
+				expect("bedtime line", "BEDTIME");
+				LivelyVillagers.state(villager).lastGreeted.clear();
+				events.clear();
+				face(level, base.offset(0, 0, -3));
+			}
+			case 1500 -> {
+				expect("night greeting", "GREET_NIGHT");
+				screenshot.accept("11-night-greeting");
+			}
+			case 1560 -> {
+				events.clear();
+				rightClick(level);
+			}
+			case 1570 -> {
+				expect("night right-click jobless", "CLICK_JOBLESS_NIGHT");
+				screenshot.accept("12-night-click");
+			}
+			case 1620 -> finish();
 			default -> {
 			}
 		}

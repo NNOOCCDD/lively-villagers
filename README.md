@@ -14,6 +14,7 @@ personality (cheerful, curious, shy or grumpy), and talks through speech bubbles
 - **Danger:** villagers also fear creepers, skeletons, spiders, witches and more, shout when they panic, run
   from lit TNT and hissing creepers, and calm down afterwards.
 - **Right-click:** villagers without a job (and nitwits) grumble ("Hey...", "Stop touching me!"); working villagers greet you with a shop line before trading opens.
+- **Night:** after dark villagers get sleepy: yawning greetings, "Time to turn in for the night." when they head to bed, tired shop lines, and sleep-talk if you poke them while they sleep.
 - **Introductions:** sneak and right-click a villager with an empty hand to have them introduce themselves.
 
 ## Install

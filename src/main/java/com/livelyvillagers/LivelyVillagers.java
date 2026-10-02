@@ -43,8 +43,8 @@ public class LivelyVillagers implements ModInitializer {
 		.buildAndRegister(id("mind"));
 	public static final AttachmentType<VillagerState> STATE = AttachmentRegistry.createDefaulted(id("state"), VillagerState::new);
 
-	/** Self-test only: overrides personality greet chance when >= 0. */
-	public static float forcedGreetChance = -1;
+	/** Self-test only: overrides the random chance of greetings and bedtime lines when >= 0. */
+	public static float forcedChance = -1;
 	/** Self-test only: sees every reaction. */
 	public static BiConsumer<String, Villager> traceListener = (event, v) -> {
 	};
@@ -65,7 +65,11 @@ public class LivelyVillagers implements ModInitializer {
 
 		UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
 			if (level.isClientSide || hand != InteractionHand.MAIN_HAND || player.isSpectator()
-				|| !(entity instanceof Villager v) || !v.isAlive() || v.isSleeping() || v.isNoAi() || v.isTrading()) {
+				|| !(entity instanceof Villager v) || !v.isAlive() || v.isNoAi() || v.isTrading()) {
+				return InteractionResult.PASS;
+			}
+			if (v.isSleeping()) {
+				Reactions.onClickedSleeping(v);
 				return InteractionResult.PASS;
 			}
 			// Sneak + empty hand: they introduce themselves instead of opening trades.

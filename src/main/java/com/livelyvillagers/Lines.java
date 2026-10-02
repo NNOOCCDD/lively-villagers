@@ -13,7 +13,8 @@ public final class Lines {
 		BROKE_JOB_SITE, BROKE_BED, BROKE_BELL, BROKE_LIKED,
 		GIFT_LIKE, GIFT_LOVE, GIFT_AGAIN, FOUND_GIFT,
 		PANIC_HOSTILE, PANIC_HURT, PANIC_TNT, PANIC_LOOP, CALM,
-		CLICK_JOBLESS, CLICK_WORKER, CLICK_BABY
+		CLICK_JOBLESS, CLICK_WORKER, CLICK_BABY,
+		BEDTIME, CLICK_JOBLESS_NIGHT, CLICK_WORKER_NIGHT, SLEEP_TALK
 	}
 
 	private static final Map<Topic, String[]> DEFAULT = new EnumMap<>(Topic.class);
@@ -23,7 +24,8 @@ public final class Lines {
 		put(Topic.GREET, "Hello, {player}!", "Hrm. Hi there.", "Good day!", "Oh, hello!", "Hmm-hm!", "Nice to see you.");
 		put(Topic.GREET_WARM, "{player}! My favourite customer!", "Ah, {player}! Always a pleasure.", "Hello again, friend!");
 		put(Topic.GREET_COLD, "Hmph.", "...", "I'm watching you, {player}.", "Oh. It's you.");
-		put(Topic.GREET_NIGHT, "Out this late? Careful.", "*yawn* Evening.", "Shouldn't you be indoors?");
+		put(Topic.GREET_NIGHT, "I'm sleepy...", "I'm so tired.", "Time to turn in for the night.", "*yawn* Evening, {player}.",
+			"Long day. Goodnight!", "Out this late? Careful.", "Shouldn't you be indoors?", "Can barely keep my eyes open...");
 		put(Topic.GREET_RAIN, "Lovely weather for crops!", "Wet day, isn't it?", "Hrm, rain again.");
 		put(Topic.GREET_BABY, "Hi!! Hi hi!", "Wanna play tag?", "You're tall!");
 		put(Topic.INTRO, "I'm {name} the {job}. People say I'm {personality}.", "Name's {name}. {job}. Quite {personality}, they tell me.");
@@ -58,6 +60,21 @@ public final class Lines {
 			"What can I get for you today?", "Emeralds only, friend.", "Fresh stock today!", "The {job} is in! How can I help?",
 			"Pleasure doing business, {player}.");
 		put(Topic.CLICK_BABY, "Hehe! That tickles!", "Tag, you're it!", "Hey! I'm playing!");
+
+		put(Topic.BEDTIME, "Time to turn in for the night.", "*yaaawn*", "I'm so tired...", "Bedtime already?",
+			"Goodnight, everyone!", "My feet are killing me. Bed!", "I'm sleepy. See you tomorrow.");
+		put(Topic.CLICK_JOBLESS_NIGHT, "Hey... it's bedtime.", "Stop poking me, I'm sleepy!", "Let me sleep...", "Too tired for this.");
+		put(Topic.CLICK_WORKER_NIGHT, "*yawn* Shop's nearly closed...", "Make it quick, I'm sleepy.", "Late customer, eh? Fine, fine.",
+			"I'm so tired... what do you need?");
+		put(Topic.SLEEP_TALK, "Zzz...", "*snore*", "Five more minutes...", "Mmh... emeralds...", "Zzz... no... my crops...");
+
+		put(Personality.CHEERFUL, Topic.GREET_NIGHT, "Goodnight, {player}! Sweet dreams!", "*yawn* What a lovely day it was!");
+		put(Personality.CHEERFUL, Topic.BEDTIME, "Nighty night, everyone!", "Can't wait for tomorrow! *yawn*");
+		put(Personality.GRUMPY, Topic.GREET_NIGHT, "It's late. Go home.", "Hrmph. Some of us sleep.");
+		put(Personality.GRUMPY, Topic.BEDTIME, "Finally. Bed.", "Hrmph. Nobody better wake me.");
+		put(Personality.GRUMPY, Topic.CLICK_WORKER_NIGHT, "We're CLOSED. ...Fine. What?", "Do you know what time it is?");
+		put(Personality.SHY, Topic.GREET_NIGHT, "...g-goodnight.", "*sleepy wave*");
+		put(Personality.CURIOUS, Topic.GREET_NIGHT, "Ooh, do you see the stars tonight?", "*yawn* Did you know zombies come out at night?");
 
 		put(Personality.CHEERFUL, Topic.CLICK_JOBLESS, "Hey... I'm on a break. Forever.", "Hi! ...No, I still don't have a job.");
 		put(Personality.CHEERFUL, Topic.CLICK_WORKER, "Hello hello! Take your time!", "Ooh, a customer! My favourite!", "Hi {player}! Great deals today!");

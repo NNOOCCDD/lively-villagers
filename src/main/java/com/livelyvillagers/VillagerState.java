@@ -17,6 +17,9 @@ public class VillagerState {
 	public long nextPanicShout;
 	public long nextBlockReaction;
 	public long nextClickLine;
+	public boolean wasResting;
+	/** Game time to mumble a bedtime line, or -1. */
+	public long bedtimeLineAt = -1;
 	public long nextChatter;
 	/** A gift the villager shows off in its hand until clearHandAt (game time). */
 	public Item heldGift;
