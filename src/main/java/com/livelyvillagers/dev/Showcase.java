@@ -1,4 +1,8 @@
-package com.livelyvillagers;
+package com.livelyvillagers.dev;
+
+import com.livelyvillagers.LivelyVillagers;
+import com.livelyvillagers.SpeechBubbles;
+import com.livelyvillagers.TestHooks;
 
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -66,7 +70,7 @@ public final class Showcase {
 	static Vec3 look;
 
 	public static void install() {
-		SpeechBubbles.scaleBoost = 1.25F;
+		TestHooks.bubbleScale = 1.25F;
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			player = handler.getPlayer();
 			script();
@@ -127,7 +131,7 @@ public final class Showcase {
 		// ---------------- plains, morning
 		goToVillage(BuiltinStructures.VILLAGE_PLAINS, 1500);
 		shot("hero-01-plains-village", () -> {
-			SpeechBubbles.scaleBoost = 1.9F;
+			TestHooks.bubbleScale = 1.9F;
 			Villager a = actor(-3.0, 0.5, VillagerProfession.FARMER, false, "Hello hello! What a wonderful day!");
 			Villager b = actor(-1.0, -0.5, VillagerProfession.LIBRARIAN, false, "Ooh, an adventurer!");
 			Villager c = actor(1.0, 0.5, VillagerProfession.NONE, false, "Good day!");
@@ -137,7 +141,7 @@ public final class Showcase {
 			particles(HAPPY, a, b);
 		});
 		shot("group-02-greetings", () -> {
-			SpeechBubbles.scaleBoost = 1.25F;
+			TestHooks.bubbleScale = 1.25F;
 			Villager a = actor(-2.1, 0, VillagerProfession.BUTCHER, false, "Hello hello! Take your time!");
 			Villager b = actor(0, 0.6, VillagerProfession.TOOLSMITH, false, "Buying or browsing?");
 			Villager c = actor(2.1, 0, VillagerProfession.CARTOGRAPHER, false, "Oh! Um... w-welcome.");
@@ -163,7 +167,7 @@ public final class Showcase {
 			particles(SWEAT, a, b);
 		});
 		shot("group-06-creeper-panic", () -> {
-			SpeechBubbles.scaleBoost = 1.5F;
+			TestHooks.bubbleScale = 1.5F;
 			Mob creeper = mob(EntityType.CREEPER, 3.0, -1.2);
 			Villager a = actor(-2.2, -0.6, VillagerProfession.FLETCHER, false, "Aaah! Creeper!");
 			Villager b = actor(-0.6, -1.2, VillagerProfession.NONE, false, "Creeper! RUN!");
@@ -174,7 +178,7 @@ public final class Showcase {
 			particles(SWEAT, a, b, c);
 		});
 		shot("single-07-jobless-poke", () -> {
-			SpeechBubbles.scaleBoost = 1.25F;
+			TestHooks.bubbleScale = 1.25F;
 			Villager a = actor(0, 0, VillagerProfession.NITWIT, false, "Stop touching me!");
 			a.setUnhappyCounter(60);
 			faceAll(camera(3.0, 1.7), a);
@@ -192,14 +196,14 @@ public final class Showcase {
 		// ---------------- desert, midday
 		goToVillage(BuiltinStructures.VILLAGE_DESERT, 4000);
 		shot("hero-10-desert-village", () -> {
-			SpeechBubbles.scaleBoost = 1.9F;
+			TestHooks.bubbleScale = 1.9F;
 			Villager a = actor(-2.4, 0, VillagerProfession.WEAPONSMITH, false, "Emeralds only, friend.");
 			Villager b = actor(0, 0.6, VillagerProfession.CLERIC, false, "Best prices in the village!");
 			Villager c = actor(2.4, 0, VillagerProfession.NONE, false, "Hello, traveller!");
 			faceAll(camera(10, 4.0), a, b, c);
 		});
 		shot("group-11-husk-attack", () -> {
-			SpeechBubbles.scaleBoost = 1.25F;
+			TestHooks.bubbleScale = 1.25F;
 			Mob husk = mob(EntityType.HUSK, 2.8, -0.8);
 			Villager a = actor(-1.8, -0.8, VillagerProfession.FARMER, false, "Help! A Husk!");
 			Villager b = actor(0.0, -0.2, VillagerProfession.LEATHERWORKER, false, "Aaaah!");

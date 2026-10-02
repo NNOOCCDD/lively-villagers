@@ -1,6 +1,6 @@
-package com.livelyvillagers.client;
+package com.livelyvillagers.dev.client;
 
-import com.livelyvillagers.FilmState;
+import com.livelyvillagers.dev.FilmState;
 import com.livelyvillagers.LivelyVillagers;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;

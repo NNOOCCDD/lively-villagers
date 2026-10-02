@@ -1,7 +1,8 @@
 package com.livelyvillagers.mixin;
 
 import com.livelyvillagers.LivelyConfig;
-import com.livelyvillagers.Reactions;
+import com.livelyvillagers.Gifts;
+import com.livelyvillagers.VillagerBrain;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class VillagerMixin {
 	@Inject(method = "customServerAiStep", at = @At("TAIL"))
 	private void livelyvillagers$think(CallbackInfo ci) {
-		Reactions.tick((Villager) (Object) this);
+		VillagerBrain.tick((Villager) (Object) this);
 	}
 
 	/**
@@ -24,19 +25,19 @@ public abstract class VillagerMixin {
 	 */
 	@Inject(method = "wantsToPickUp", at = @At("HEAD"), cancellable = true)
 	private void livelyvillagers$wantGifts(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-		if (LivelyConfig.get().gifts && Reactions.isGift(stack)) {
-			cir.setReturnValue(Reactions.acceptsGiftNow((Villager) (Object) this));
+		if (LivelyConfig.get().gifts && Gifts.isGift(stack)) {
+			cir.setReturnValue(Gifts.acceptsGiftNow((Villager) (Object) this));
 		}
 	}
 
 	@Inject(method = "pickUpItem", at = @At("HEAD"), cancellable = true)
 	private void livelyvillagers$receiveGift(ItemEntity itemEntity, CallbackInfo ci) {
-		if (!LivelyConfig.get().gifts || !Reactions.isGift(itemEntity.getItem())) {
+		if (!LivelyConfig.get().gifts || !Gifts.isGift(itemEntity.getItem())) {
 			return;
 		}
 		// Only player-thrown gifts, one at a time; anything else stays on the ground.
-		if (Reactions.isPlayerGift(itemEntity) && Reactions.acceptsGiftNow((Villager) (Object) this)) {
-			Reactions.onGift((Villager) (Object) this, itemEntity);
+		if (Gifts.isPlayerGift(itemEntity) && Gifts.acceptsGiftNow((Villager) (Object) this)) {
+			Gifts.receive((Villager) (Object) this, itemEntity);
 		}
 		ci.cancel();
 	}

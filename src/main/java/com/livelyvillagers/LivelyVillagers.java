@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.function.BiConsumer;
 
 public class LivelyVillagers implements ModInitializer {
 	public static final String MOD_ID = "livelyvillagers";
@@ -44,11 +43,6 @@ public class LivelyVillagers implements ModInitializer {
 		.buildAndRegister(id("mind"));
 	public static final AttachmentType<VillagerState> STATE = AttachmentRegistry.createDefaulted(id("state"), VillagerState::new);
 
-	/** Self-test only: overrides the random chance of greetings and bedtime lines when >= 0. */
-	public static float forcedChance = -1;
-	/** Self-test only: sees every reaction. */
-	public static BiConsumer<String, Villager> traceListener = (event, v) -> {
-	};
 
 	@Override
 	public void onInitialize() {
@@ -60,13 +54,13 @@ public class LivelyVillagers implements ModInitializer {
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (entity instanceof Villager v && LivelyConfig.get().deathLineChance > 0) {
-				Reactions.onDeath(v, source);
+				Danger.onDeath(v, source);
 			}
 		});
 
 		PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, blockEntity) -> {
 			if (level instanceof ServerLevel serverLevel) {
-				Reactions.onBlockBroken(serverLevel, player, pos, state);
+				BlockReactions.onBlockBroken(serverLevel, player, pos, state);
 			}
 		});
 
@@ -76,18 +70,18 @@ public class LivelyVillagers implements ModInitializer {
 				return InteractionResult.PASS;
 			}
 			if (v.isSleeping()) {
-				Reactions.onClickedSleeping(v);
+				Greetings.onClickedSleeping(v);
 				return InteractionResult.PASS;
 			}
 			// Sneak + empty hand: they introduce themselves instead of opening trades.
 			if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
-				Reactions.introduce(v, player);
+				Greetings.introduce(v, player);
 				return InteractionResult.SUCCESS;
 			}
 			// Name tags and spawn eggs keep their vanilla use without chatter.
 			ItemStack held = player.getMainHandItem();
 			if (!held.is(Items.NAME_TAG) && !held.is(Items.VILLAGER_SPAWN_EGG) && !held.is(Items.LEAD)) {
-				Reactions.onClicked(v, player);
+				Greetings.onClicked(v, player);
 			}
 			return InteractionResult.PASS;
 		});
@@ -115,7 +109,7 @@ public class LivelyVillagers implements ModInitializer {
 			String[] parts = tool.split(":");
 			if (Boolean.getBoolean("livelyvillagers." + parts[0])) {
 				try {
-					Class.forName("com.livelyvillagers." + parts[1]).getDeclaredMethod("install").invoke(null);
+					Class.forName("com.livelyvillagers.dev." + parts[1]).getDeclaredMethod("install").invoke(null);
 				} catch (ReflectiveOperationException e) {
 					LOGGER.error("Dev tool {} is not available in this build", parts[1], e);
 				}
@@ -132,7 +126,7 @@ public class LivelyVillagers implements ModInitializer {
 			return 0;
 		}
 		VillagerMind mind = mind(v);
-		src.sendSuccess(() -> Component.literal(Reactions.displayName(v) + " the " + Reactions.jobName(v)
+		src.sendSuccess(() -> Component.literal(Speech.displayName(v) + " the " + Speech.jobName(v)
 			+ " (" + mind.personality().displayName() + ") - your reputation: " + v.getPlayerReputation(player)), false);
 		return 1;
 	}
@@ -151,7 +145,7 @@ public class LivelyVillagers implements ModInitializer {
 			return 0;
 		}
 		setMind(v, mind(v).withPersonality(p));
-		src.sendSuccess(() -> Component.literal(Reactions.displayName(v) + " is now " + p.displayName().toLowerCase(Locale.ROOT) + "."), true);
+		src.sendSuccess(() -> Component.literal(Speech.displayName(v) + " is now " + p.displayName().toLowerCase(Locale.ROOT) + "."), true);
 		return 1;
 	}
 
@@ -180,7 +174,7 @@ public class LivelyVillagers implements ModInitializer {
 		if (DEBUG) {
 			LOGGER.info("[react] {} {} ({} {}): {}", event, v.getUUID().toString().substring(0, 8), mind(v).name(), mind(v).personality(), detail);
 		}
-		traceListener.accept(event, v);
+		TestHooks.traceListener.accept(event, v);
 	}
 
 	public static ResourceLocation id(String path) {

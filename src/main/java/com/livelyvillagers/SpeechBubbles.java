@@ -32,8 +32,6 @@ public final class SpeechBubbles {
 	}
 
 	private static final Map<UUID, Bubble> ACTIVE = new HashMap<>();
-	/** Showcase only: bigger bubbles so they read in wide screenshots. */
-	static float scaleBoost = 1.0F;
 
 	public static void show(Villager villager, String text) {
 		if (!(villager.level() instanceof ServerLevel level)) {
@@ -42,7 +40,7 @@ public final class SpeechBubbles {
 		remove(villager.getUUID());
 
 		Component component = Component.literal(text).withStyle(s -> s.withColor(TextColor.fromRgb(TEXT_COLOR)));
-		float scale = (villager.isBaby() ? 0.45F : 0.6F) * scaleBoost;
+		float scale = (villager.isBaby() ? 0.45F : 0.6F) * TestHooks.bubbleScale;
 		CompoundTag tag = new CompoundTag();
 		tag.putString("id", "minecraft:text_display");
 		tag.putString("text", Component.Serializer.toJson(component, level.registryAccess()));

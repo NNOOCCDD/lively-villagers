@@ -1,7 +1,7 @@
-package com.livelyvillagers.client;
+package com.livelyvillagers.dev.client;
 
 import com.livelyvillagers.LivelyVillagers;
-import com.livelyvillagers.SelfTest;
+import com.livelyvillagers.dev.SelfTest;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;

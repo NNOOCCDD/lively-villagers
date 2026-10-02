@@ -1,7 +1,7 @@
 package com.livelyvillagers.mixin;
 
 import com.livelyvillagers.LivelyConfig;
-import com.livelyvillagers.Reactions;
+import com.livelyvillagers.Gifts;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -24,7 +24,7 @@ public abstract class NearestItemSensorMixin {
 			return;
 		}
 		Optional<ItemEntity> wanted = mob.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM);
-		if (wanted.isPresent() && Reactions.isGift(wanted.get().getItem()) && !Reactions.isPlayerGift(wanted.get())) {
+		if (wanted.isPresent() && Gifts.isGift(wanted.get().getItem()) && !Gifts.isPlayerGift(wanted.get())) {
 			mob.getBrain().eraseMemory(MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM);
 		}
 	}

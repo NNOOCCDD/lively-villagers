@@ -11,7 +11,7 @@ public final class Lines {
 		GREET, GREET_WARM, GREET_COLD, GREET_NIGHT, GREET_RAIN, GREET_BABY, INTRO,
 		LOVE_JOB_SITE, WANT_JOB_SITE, LIKE_BLOCK, DISLIKE_BLOCK, SCARY_BLOCK, TOO_CLOSE, CURIOUS_BLOCK,
 		BROKE_JOB_SITE, BROKE_BED, BROKE_BELL, BROKE_LIKED,
-		GIFT_LIKE, GIFT_LOVE, GIFT_AGAIN, FOUND_GIFT,
+		GIFT_LIKE, GIFT_LOVE, GIFT_AGAIN,
 		PANIC_HOSTILE, PANIC_HURT, PANIC_TNT, PANIC_LOOP, CALM,
 		CLICK_JOBLESS, CLICK_WORKER, CLICK_BABY,
 		BEDTIME, CLICK_JOBLESS_NIGHT, CLICK_WORKER_NIGHT, SLEEP_TALK,
@@ -48,7 +48,6 @@ public final class Lines {
 		put(Topic.GIFT_LIKE, "For me? Thank you, {player}!", "A {item}! How kind!", "Aww, you shouldn't have!");
 		put(Topic.GIFT_LOVE, "WOW! A {item}! You're the best, {player}!", "I'll treasure this forever!", "Oh my! Thank you thank you!");
 		put(Topic.GIFT_AGAIN, "Another one? You're too kind.", "Hehe, thanks again!");
-		put(Topic.FOUND_GIFT, "Ooh, a {item}! Finders keepers.", "Someone dropped a {item}!");
 
 		put(Topic.PANIC_HOSTILE, "{threat}! RUN!", "Help! A {threat}!", "Aaah! {threat}!");
 		put(Topic.PANIC_HURT, "Ow! What was that for?!", "Help! Stop it!", "Ouch!");

@@ -5,12 +5,16 @@
 	"name": "Lively Villagers",
 	"description": "Every villager gets a name, a personality and something to say. They greet you as you pass, react to what you build, thank you for gifts, panic when monsters show up and yawn at bedtime. A small touch that makes vanilla villages feel alive.",
 	"authors": ["imzleepink"],
-	"license": "CC0-1.0",
+	"license": "MIT",
+	"contact": {
+		"sources": "https://github.com/NNOOCCDD/lively-villagers",
+		"issues": "https://github.com/NNOOCCDD/lively-villagers/issues"
+	},
 	"icon": "assets/livelyvillagers/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": ["com.livelyvillagers.LivelyVillagers"]
-		,"client": ["com.livelyvillagers.client.SelfTestClient"]
+		,"client": ["com.livelyvillagers.dev.client.SelfTestClient"]
 	},
 	"mixins": [
 		"livelyvillagers.mixins.json"

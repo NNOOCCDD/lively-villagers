@@ -1,4 +1,4 @@
-package com.livelyvillagers;
+package com.livelyvillagers.dev;
 
 /** Dev-only: shared between the film director (server thread) and the recorder/camera (render thread). */
 public final class FilmState {

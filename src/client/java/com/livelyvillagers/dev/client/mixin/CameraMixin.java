@@ -1,7 +1,7 @@
-package com.livelyvillagers.client.mixin;
+package com.livelyvillagers.dev.client.mixin;
 
-import com.livelyvillagers.FilmState;
-import com.livelyvillagers.client.FilmClient;
+import com.livelyvillagers.dev.FilmState;
+import com.livelyvillagers.dev.client.FilmClient;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;

@@ -1,5 +1,7 @@
 # Lively Villagers
 
+![Lively Villagers](docs/modrinth/banner-1920x640.png)
+
 Every villager gets a name, a personality and something to say. They greet you as you pass, react to what you build, thank you for gifts, panic when monsters show up and yawn at bedtime. A small touch that makes vanilla villages feel alive.
 
 No new blocks, items or textures: just villagers that feel like they live there. It runs on the server only, so friends can join with an unmodded game.
@@ -44,11 +46,22 @@ radius and cooldown, and set how much reputation gifts give.
   for those mobs too, the same way vanilla villagers do for zombies.
 
 ## Building
-Gradle needs JDK 25 (Loom 1.18); the mod targets Java 21.
+
+Gradle needs **JDK 25** (Loom 1.18); the mod itself targets Java 21, so a JDK 21 must be installed too.
 
 ```
-JAVA_HOME=/path/to/jdk-25 ./gradlew build              # jar in build/libs
-JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Pselftest  # scripted in-game test + screenshots in run/screenshots
-JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Praidtest   # a real raid on a real village, checks the raid lines
-JAVA_HOME=/path/to/jdk-25 ./gradlew runClient -Pshowcase   # staged hero screenshots in real villages (1920x1080)
+./gradlew build                      # jar in build/libs/
+./gradlew runClient -Pselftest       # scripted in-game test (SELFTEST lines in the log)
+./gradlew runClient -Praidtest       # a real raid on a real village (RAIDTEST lines)
 ```
+
+More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): code layout, testing, and notes on vanilla villager internals.
+
+## License
+
+[MIT](LICENSE).
+
+## Credits
+
+- Built on [Fabric](https://fabricmc.net/) and Fabric API.
+- Developed with the help of AI (Claude Code by Anthropic).

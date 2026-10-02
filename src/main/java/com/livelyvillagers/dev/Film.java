@@ -1,4 +1,10 @@
-package com.livelyvillagers;
+package com.livelyvillagers.dev;
+
+import com.livelyvillagers.Greetings;
+import com.livelyvillagers.LivelyVillagers;
+import com.livelyvillagers.Personality;
+import com.livelyvillagers.TestHooks;
+import com.livelyvillagers.VillagerState;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -31,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-
 /**
  * Dev-only (-Dlivelyvillagers.film=true): stages the showcase video's shots in real villages with
  * villager AI on, drives the camera, and tells the client recorder when each clip starts and stops.
@@ -50,8 +55,8 @@ public final class Film {
 	private static int wait = -1;
 
 	public static void install() {
-		LivelyVillagers.forcedChance = 1.0F;
-		SpeechBubbles.scaleBoost = 1.35F;
+		TestHooks.forcedChance = 1.0F;
+		TestHooks.bubbleScale = 1.35F;
 		FilmState.active = true;
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			Showcase.player = handler.getPlayer();
@@ -152,8 +157,8 @@ public final class Film {
 			Vec3 from = S().subtract(L().scale(20)).add(0, 12, 0);
 			Vec3 to = S().subtract(L().scale(9)).add(0, 6.5, 0);
 			return pose(lerp(from, to, k), Vec3.atBottomCenterOf(bell()).add(0, 1, 0));
-		}, -0.5, (Runnable) () -> SpeechBubbles.scaleBoost = 2.4F, 1.0, (Runnable) () -> introduceNearest(0),
-			2.4, (Runnable) () -> introduceNearest(1), 6.0, (Runnable) () -> SpeechBubbles.scaleBoost = 1.35F);
+		}, -0.5, (Runnable) () -> TestHooks.bubbleScale = 2.4F, 1.0, (Runnable) () -> introduceNearest(0),
+			2.4, (Runnable) () -> introduceNearest(1), 6.0, (Runnable) () -> TestHooks.bubbleScale = 1.35F);
 
 		// 03 — walk-by: stroll up the street toward the bell; villagers along it say hi as you pass.
 		shot("03-walk-by", 7.0, () -> {
@@ -219,7 +224,7 @@ public final class Film {
 			Villager v = quiet(villager(on(0, 1.0), VillagerProfession.NITWIT, 0.0));
 			LivelyVillagers.setMind(v, LivelyVillagers.mind(v).withPersonality(Personality.GRUMPY));
 		}, 1.2, (Runnable) () -> {
-			Reactions.nextLineOverride = "Stop touching me!";
+			TestHooks.nextLineOverride = "Stop touching me!";
 			poke();
 		});
 
@@ -231,7 +236,7 @@ public final class Film {
 			double k = smooth(t / 7.5);
 			Vec3 cam = lerp(on(-0.3, -4.4).add(0, 2.0, 0), on(0.1, -3.2).add(0, 1.85, 0), k);
 			return pose(cam, on(0, 1.2).add(0, 1.4, 0));
-		}, -0.9, (Runnable) () -> SpeechBubbles.scaleBoost = 1.4F, -0.8, (Runnable) () -> {
+		}, -0.9, (Runnable) () -> TestHooks.bubbleScale = 1.4F, -0.8, (Runnable) () -> {
 			villager(on(-2.7, 1.0), VillagerProfession.FARMER, 0.0);
 			villager(on(0.0, 2.0), VillagerProfession.LIBRARIAN, 0.0);
 			villager(on(2.7, 0.9), VillagerProfession.NONE, 0.0);
@@ -338,7 +343,7 @@ public final class Film {
 		List<Villager> vs = new ArrayList<>(cast.stream().filter(e -> e instanceof Villager).map(e -> (Villager) e).toList());
 		vs.sort((a, b) -> Double.compare(a.distanceToSqr(Showcase.player), b.distanceToSqr(Showcase.player)));
 		if (index < vs.size()) {
-			Reactions.introduce(vs.get(index), Showcase.player);
+			Greetings.introduce(vs.get(index), Showcase.player);
 		}
 	}
 

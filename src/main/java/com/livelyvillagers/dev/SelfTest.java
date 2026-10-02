@@ -1,4 +1,11 @@
-package com.livelyvillagers;
+package com.livelyvillagers.dev;
+
+import com.livelyvillagers.Greetings;
+import com.livelyvillagers.LivelyVillagers;
+import com.livelyvillagers.Personality;
+import com.livelyvillagers.SpeechBubbles;
+import com.livelyvillagers.TestHooks;
+import com.livelyvillagers.VillagerMind;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -57,8 +64,8 @@ public final class SelfTest {
 	private static int reputationBefore;
 
 	public static void install() {
-		LivelyVillagers.forcedChance = 1.0F;
-		LivelyVillagers.traceListener = (event, v) -> {
+		TestHooks.forcedChance = 1.0F;
+		TestHooks.traceListener = (event, v) -> {
 			if (v == villager) {
 				events.add(event);
 			}
@@ -269,7 +276,7 @@ public final class SelfTest {
 				level.setWeatherParameters(0, 6000, true, true);
 			}
 			case 1790 -> {
-				check("thunderstorm at noon is not sleepy time", !Reactions.isSleepyTime(villager));
+				check("thunderstorm at noon is not sleepy time", !Greetings.isSleepyTime(villager));
 				level.setWeatherParameters(6000, 0, false, false);
 				// --- 1.0.1: /lively reload
 				int ok;
@@ -282,7 +289,7 @@ public final class SelfTest {
 				// --- 1.0.1: trading-hall cells are recognised.
 				Villager boxed = EntityType.VILLAGER.spawn(level, base.offset(9, 0, 0), MobSpawnType.COMMAND);
 				ring(level, base.offset(9, 0, 0), 1);
-				check("1x1 cell villager is boxed in, pen villager is not", Reactions.isBoxedIn(boxed, level) && !Reactions.isBoxedIn(villager, level));
+				check("1x1 cell villager is boxed in, pen villager is not", Greetings.isBoxedIn(boxed, level) && !Greetings.isBoxedIn(villager, level));
 				boxed.discard();
 			}
 			// --- 1.0.1: nobody around, nothing said (the villager still panics).
@@ -339,7 +346,7 @@ public final class SelfTest {
 	private static BlockPos walkStart;
 
 	private static void setupWalk(ServerLevel level) {
-		LivelyVillagers.forcedChance = -1;
+		TestHooks.forcedChance = -1;
 		level.setDayTime(6000);
 		walkStart = base.offset(-8, 0, 20);
 		for (int i = 0; i < 8; i++) {
@@ -349,7 +356,7 @@ public final class SelfTest {
 			walkers.add(w);
 			walkLog.add(LivelyVillagers.mind(w).personality().getSerializedName());
 		}
-		LivelyVillagers.traceListener = LivelyVillagers.traceListener.andThen((event, v) -> {
+		TestHooks.traceListener = TestHooks.traceListener.andThen((event, v) -> {
 			if (walkers.contains(v) && event.startsWith("GREET")) {
 				greetedWalkers.add(v);
 			}

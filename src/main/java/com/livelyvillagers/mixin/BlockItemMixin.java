@@ -1,6 +1,6 @@
 package com.livelyvillagers.mixin;
 
-import com.livelyvillagers.Reactions;
+import com.livelyvillagers.BlockReactions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
@@ -15,7 +15,7 @@ public abstract class BlockItemMixin {
 	@Inject(method = "place", at = @At("RETURN"))
 	private void livelyvillagers$afterPlace(BlockPlaceContext context, CallbackInfoReturnable<InteractionResult> cir) {
 		if (cir.getReturnValue().consumesAction() && context.getPlayer() != null && context.getLevel() instanceof ServerLevel level) {
-			Reactions.onBlockPlaced(level, context.getClickedPos(), level.getBlockState(context.getClickedPos()), context.getPlayer());
+			BlockReactions.onBlockPlaced(level, context.getClickedPos(), level.getBlockState(context.getClickedPos()), context.getPlayer());
 		}
 	}
 }

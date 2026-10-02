@@ -1,4 +1,7 @@
-package com.livelyvillagers;
+package com.livelyvillagers.dev;
+
+import com.livelyvillagers.LivelyVillagers;
+import com.livelyvillagers.TestHooks;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -42,8 +45,8 @@ public final class RaidTest {
 	private static long victoryAt = -1;
 
 	public static void install() {
-		LivelyVillagers.forcedChance = 1.0F;
-		LivelyVillagers.traceListener = (event, v) -> counts.merge(event, 1, Integer::sum);
+		TestHooks.forcedChance = 1.0F;
+		TestHooks.traceListener = (event, v) -> counts.merge(event, 1, Integer::sum);
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			player = handler.getPlayer();
 			start = server.getTickCount() + 40;

@@ -1,6 +1,6 @@
-package com.livelyvillagers.client.mixin;
+package com.livelyvillagers.dev.client.mixin;
 
-import com.livelyvillagers.client.FilmClient;
+import com.livelyvillagers.dev.client.FilmClient;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,10 +1,26 @@
-# Lively Villagers — mod log
+# Development notes
+
+How the mod is built and tested, and what was learned about vanilla villagers along the way.
+
+## Code layout
+- `VillagerBrain`: runs every behaviour for a villager, from the end of its vanilla AI step (`VillagerMixin`).
+- `Greetings`, `BlockReactions`, `Gifts`, `Danger`, `RaidReactions`: one behaviour each.
+- `Speech` + `SpeechBubbles`: picking/filling a line from `Lines`, the sound, and the vanilla `text_display` bubble.
+- `VillagerMind` (saved: name, personality, gift days) and `VillagerState` (not saved: cooldowns and flags), both Fabric data attachments.
+- `LivelyConfig`: `config/lively-villagers.json`.
+- `dev/` (and `src/client/.../dev/`): self-test, raid test, screenshot and film tools. Left out of release jars; `TestHooks` is their only way in.
+
+## Testing
+- `./gradlew runClient -Pselftest`: flat world, one scripted villager; prints `SELFTEST PASS/FAIL` lines to the log.
+- `./gradlew runClient -Praidtest`: a real raid on a real village (fixed seed); prints `RAIDTEST` lines.
+- `./gradlew runClient -Pshowcase` / `-Pfilm [-PfilmOnly=06-danger]`: hero screenshots / showcase footage.
+- Release jar check: drop `build/libs/lively-villagers-<version>.jar` and Fabric API into a dedicated Fabric server and summon/kill villagers.
 
 ## Target
 - Minecraft Java **1.21.1**, Fabric Loader **0.19.5**, Fabric API **0.116.17+1.21.1**, Loom **1.18-SNAPSHOT** (`fabric-loom-remap`), Mojang mappings.
 - Template: `FabricMC/fabric-example-mod` branch `1.21.1`.
-- Loom 1.18 needs **JDK 25 to run Gradle**: `export JAVA_HOME=~/.jdks/jdk-25.0.4.1+1`. The mod compiles/runs on a Java 21 toolchain (`/usr/lib/jvm` 21).
-- Decompiled sources (never commit): `~/mc-1.21.1-decomp` (common), `~/mc-1.21.1-decomp-client`.
+- Loom 1.18 needs **JDK 25 to run Gradle** (`JAVA_HOME` pointing at a JDK 25). The mod compiles/runs on a Java 21 toolchain (`/usr/lib/jvm` 21).
+- Decompiled sources: `./gradlew genSources`; read them from the Loom cache, never commit them.
 
 ## Route
 Loader API + Mixin. Everything is server-side using vanilla packets (text_display speech bubbles, sounds, entity-event particles), so the jar works on a server without clients installing it.
@@ -16,7 +32,7 @@ Loader API + Mixin. Everything is server-side using vanilla packets (text_displa
 - `AbstractVillager.setUnhappyCounter(40)` is synced → head shake on clients. Entity events: 12 hearts, 13 angry, 14 happy, 42 sweat.
 - QuickPlay singleplayer needs an existing world; selftest client creates one via `WorldOpenFlows.createFreshLevel`.
 
-## Log
+## History
 - 2026-10-02: scaffolded, genSources OK.
 - 2026-10-02: v1 features in; `./gradlew runClient -Pselftest` → 13 PASS, 0 FAIL, 1 SKIP (job-site break: penned villager can't path to claim the composter). Screenshots in run/screenshots.
 
