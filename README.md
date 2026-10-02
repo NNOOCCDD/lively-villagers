@@ -1,10 +1,9 @@
 # Lively Villagers
 
-A Fabric mod for Minecraft Java 1.21.1 that makes villagers feel alive. Every villager gets a name and a
-personality (cheerful, curious, shy or grumpy), and talks through speech bubbles above their heads.
+Lively Villagers adds voice lines, new personalities & behaviour. Just something to make vanilla nicer!
 
 - **Greetings:** walk within 7 blocks of a villager and they may say hi (cheerful always, curious usually, grumpy and shy about half the time). If they stay quiet they get another chance after 15 seconds; once they greet you they wait 90 seconds.
-  say depends on your reputation, the time of day and the weather.
+  What they say depends on your reputation, the time of day and the weather.
 - **Block reactions:** villagers react to blocks placed near them. They love their own workstation, like
   flowers, lanterns, beds and crops, dislike skulls, cobwebs and magma, are scared of TNT, and complain if you
   build right on top of them. Break their workstation, bed or bell and they'll tell you about it.
