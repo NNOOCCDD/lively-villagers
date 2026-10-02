@@ -1,6 +1,8 @@
 # Lively Villagers
 
-Lively Villagers adds voice lines, new personalities & behaviour. Just something to make vanilla nicer!
+Every villager gets a name, a personality and something to say. They greet you as you pass, react to what you build, thank you for gifts, panic when monsters show up and yawn at bedtime. A small touch that makes vanilla villages feel alive.
+
+No new blocks, items or textures: just villagers that feel like they live there. It runs on the server only, so friends can join with an unmodded game.
 
 - **Greetings:** walk within 7 blocks of a villager and they may say hi (cheerful always, curious usually, grumpy and shy about half the time). If they stay quiet they get another chance after 15 seconds; once they greet you they wait 90 seconds.
   What they say depends on your reputation, the time of day and the weather.

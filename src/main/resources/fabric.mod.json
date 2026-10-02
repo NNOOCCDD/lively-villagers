@@ -3,7 +3,7 @@
 	"id": "livelyvillagers",
 	"version": "${version}",
 	"name": "Lively Villagers",
-	"description": "Lively Villagers adds voice lines, new personalities & behaviour. Just something to make vanilla nicer!",
+	"description": "Every villager gets a name, a personality and something to say. They greet you as you pass, react to what you build, thank you for gifts, panic when monsters show up and yawn at bedtime. A small touch that makes vanilla villages feel alive.",
 	"authors": ["imzleepink"],
 	"license": "CC0-1.0",
 	"icon": "assets/livelyvillagers/icon.png",
